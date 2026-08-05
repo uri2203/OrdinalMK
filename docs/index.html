@@ -96,6 +96,7 @@
             <div class="tab" onclick="switchTab('email')">Email</div>
             <div class="tab" onclick="switchTab('seo')">SEO</div>
             <div class="tab" onclick="switchTab('content')">Contenido</div>
+            <div class="tab" onclick="switchTab('projects')">Projects</div>
         </div>
 
         <!-- Tab: Overview -->
@@ -275,6 +276,118 @@
                         <tbody></tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Tab: Projects -->
+        <div class="tab-content" id="tab-projects">
+            <div class="kpi-grid" style="margin-bottom:1.5rem">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Projects</div>
+                    <div class="kpi-value" id="projTotal">--</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Active</div>
+                    <div class="kpi-value" id="projActive" style="color:var(--success)">--</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Languages</div>
+                    <div class="kpi-value" id="projLangs">--</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Content Topics</div>
+                    <div class="kpi-value" id="projTopics">--</div>
+                </div>
+            </div>
+
+            <!-- Project List -->
+            <div class="chart-card" style="margin-bottom:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3>Configured Projects</h3>
+                    <button onclick="showAddProject()" style="background:var(--accent);color:white;border:none;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-weight:500">+ Add Project</button>
+                </div>
+                <table class="data-table" id="projectsTable">
+                    <thead><tr><th>Name</th><th>Concept</th><th>Domain</th><th>Languages</th><th>Topics</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Add Project Form -->
+            <div class="chart-card" id="addProjectForm" style="display:none">
+                <h3 style="margin-bottom:1.5rem">Add New Project</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Project Name *</label>
+                        <input type="text" id="projName" placeholder="Mi Proyecto" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Domain *</label>
+                        <input type="text" id="projDomain" placeholder="miprojecto.com" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div style="grid-column:span 2">
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Concept *</label>
+                        <input type="text" id="projConcept" placeholder="Que es este proyecto?" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div style="grid-column:span 2">
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Tagline</label>
+                        <input type="text" id="projTagline" placeholder="Frase principal del proyecto" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Target Audience</label>
+                        <input type="text" id="projAudience" placeholder="Quien es tu cliente?" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Languages (comma separated)</label>
+                        <input type="text" id="projLanguages" placeholder="es, en" value="es, en" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div style="grid-column:span 2">
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Content Topics (one per line)</label>
+                        <textarea id="projTopics" rows="4" placeholder="Topic 1&#10;Topic 2&#10;Topic 3" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;resize:vertical"></textarea>
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">GitHub Repo</label>
+                        <input type="text" id="projRepo" placeholder="usuario/repo" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Product Price</label>
+                        <input type="text" id="projPrice" placeholder="29" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Currency</label>
+                        <select id="projCurrency" style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                            <option value="USD">USD</option>
+                            <option value="MXN">MXN</option>
+                            <option value="EUR">EUR</option>
+                            <option value="COP">COP</option>
+                            <option value="ARS">ARS</option>
+                            <option value="BRL">BRL</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">Stripe Link</label>
+                        <input type="text" id="projStripe" placeholder="https://buy.stripe.com/..." style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                    </div>
+                </div>
+                <div style="display:flex;gap:1rem;margin-top:1.5rem">
+                    <button onclick="saveProject()" style="background:var(--success);color:white;border:none;padding:0.7rem 1.5rem;border-radius:8px;cursor:pointer;font-weight:500">Save Project</button>
+                    <button onclick="hideAddProject()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.7rem 1.5rem;border-radius:8px;cursor:pointer">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Export Panel -->
+            <div class="chart-card" id="exportPanel" style="display:none">
+                <h3 style="margin-bottom:1rem">Export Config to GitHub</h3>
+                <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem">This will generate the YAML config and push it to your OrdinalMK repo via GitHub API.</p>
+                <div style="margin-bottom:1rem">
+                    <label style="display:block;color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem">GitHub Token (PAT)</label>
+                    <input type="password" id="githubToken" placeholder="ghp_..." style="width:100%;padding:0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
+                </div>
+                <div style="display:flex;gap:1rem">
+                    <button onclick="exportToGitHub()" style="background:var(--accent);color:white;border:none;padding:0.7rem 1.5rem;border-radius:8px;cursor:pointer;font-weight:500">Push to GitHub</button>
+                    <button onclick="copyYAML()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.7rem 1.5rem;border-radius:8px;cursor:pointer">Copy YAML</button>
+                    <button onclick="hideExport()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.7rem 1.5rem;border-radius:8px;cursor:pointer">Close</button>
+                </div>
+                <div id="exportStatus" style="margin-top:1rem;padding:0.7rem;border-radius:8px;display:none"></div>
             </div>
         </div>
     </main>
@@ -460,6 +573,234 @@
         document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
         event.target.classList.add('active');
         document.getElementById('tab-'+name).classList.add('active');
+        if(name === 'projects') loadProjects();
+    }
+
+    // ──────────────────────────────────────────────
+    // PROJECTS MANAGEMENT
+    // ──────────────────────────────────────────────
+    const DEFAULT_PROJECTS = [
+        {id:'yayika',name:'Yayika',concept:'Plataforma para mujeres emprendedoras',domain:'yayika.com',languages:['es','en','pt','fr','de'],topics:['Tracker ciclo menstrual','Planificador mujeres','Comunidad emprendedoras'],repo:'uri2203/yayika',price:'179',currency:'MXN',stripe:'https://buy.stripe.com/00wcN502q0xY2481elgA80f',status:'active'},
+        {id:'lastmile',name:'LastMile Platform',concept:'Plataforma de delivery/logistica',domain:'lastmile-platform.com',languages:['es','en'],topics:['Optimizacion rutas','Logistica ultima milla','Delivery sostenible'],repo:'uri2203/lastmile-platform',price:'99',currency:'USD',stripe:'#',status:'active'},
+        {id:'tuialista',name:'TuIAlista',concept:'Servicio de IA personalizado',domain:'tuialista.com',languages:['es','en'],topics:['IA en negocios','Automatizacion','Herramientas AI'],repo:'uri2203/tuialista-site',price:'29',currency:'USD',stripe:'#',status:'active'}
+    ];
+
+    function getProjects() {
+        const stored = localStorage.getItem('ordinalmk_projects');
+        return stored ? JSON.parse(stored) : DEFAULT_PROJECTS;
+    }
+
+    function saveProjects(projects) {
+        localStorage.setItem('ordinalmk_projects', JSON.stringify(projects));
+    }
+
+    function loadProjects() {
+        const projects = getProjects();
+        
+        // KPIs
+        document.getElementById('projTotal').textContent = projects.length;
+        document.getElementById('projActive').textContent = projects.filter(p=>p.status==='active').length;
+        const allLangs = [...new Set(projects.flatMap(p=>p.languages))];
+        document.getElementById('projLangs').textContent = allLangs.length;
+        document.getElementById('projTopics').textContent = projects.reduce((s,p)=>s+p.topics.length, 0);
+        
+        // Table
+        const tbody = document.querySelector('#projectsTable tbody');
+        tbody.innerHTML = projects.map(p => `
+            <tr>
+                <td><strong>${p.name}</strong></td>
+                <td style="color:var(--text-muted)">${p.concept}</td>
+                <td>${p.domain}</td>
+                <td>${p.languages.map(l=>`<span class="badge badge-info" style="margin-right:2px">${l.toUpperCase()}</span>`).join('')}</td>
+                <td>${p.topics.length}</td>
+                <td><span class="badge ${p.status==='active'?'badge-success':'badge-warning'}">${p.status}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    function showAddProject() {
+        document.getElementById('addProjectForm').style.display = 'block';
+        document.getElementById('addProjectForm').scrollIntoView({behavior:'smooth'});
+    }
+
+    function hideAddProject() {
+        document.getElementById('addProjectForm').style.display = 'none';
+    }
+
+    function saveProject() {
+        const name = document.getElementById('projName').value.trim();
+        const domain = document.getElementById('projDomain').value.trim();
+        const concept = document.getElementById('projConcept').value.trim();
+        
+        if(!name || !domain || !concept) {
+            alert('Name, Domain and Concept are required');
+            return;
+        }
+        
+        const id = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const languages = document.getElementById('projLanguages').value.split(',').map(l=>l.trim()).filter(Boolean);
+        const topics = document.getElementById('projTopics').value.split('\n').map(t=>t.trim()).filter(Boolean);
+        
+        const project = {
+            id,
+            name,
+            domain,
+            concept,
+            tagline: document.getElementById('projTagline').value.trim(),
+            audience: document.getElementById('projAudience').value.trim(),
+            languages,
+            topics,
+            repo: document.getElementById('projRepo').value.trim(),
+            price: document.getElementById('projPrice').value.trim(),
+            currency: document.getElementById('projCurrency').value,
+            stripe: document.getElementById('projStripe').value.trim(),
+            status: 'active'
+        };
+        
+        const projects = getProjects();
+        
+        // Check if exists
+        const existing = projects.findIndex(p=>p.id===id);
+        if(existing >= 0) {
+            projects[existing] = project;
+        } else {
+            projects.push(project);
+        }
+        
+        saveProjects(projects);
+        loadProjects();
+        hideAddProject();
+        
+        // Clear form
+        ['projName','projDomain','projConcept','projTagline','projAudience','projRepo','projPrice','projStripe'].forEach(id=>{
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('projTopics').value = '';
+        
+        // Show export panel
+        showExport();
+    }
+
+    function generateYAML() {
+        const projects = getProjects();
+        let yaml = '# OrdinalMK — Generated Config\n';
+        yaml += `# Generated: ${new Date().toISOString()}\n\n`;
+        yaml += 'projects:\n';
+        
+        projects.forEach(p => {
+            yaml += `  ${p.id}:\n`;
+            yaml += `    name: "${p.name}"\n`;
+            yaml += `    domain: ${p.domain}\n`;
+            yaml += `    github_repo: ${p.repo}\n`;
+            yaml += `    concept: "${p.concept}"\n`;
+            if(p.tagline) yaml += `    tagline: "${p.tagline}"\n`;
+            yaml += `    audience:\n`;
+            yaml += `      demographic: "${p.audience || 'General'}"\n`;
+            yaml += `    languages: [${p.languages.join(', ')}]\n`;
+            yaml += `    primary_language: ${p.languages[0]}\n`;
+            yaml += `    timezone: America/Mexico_City\n`;
+            yaml += `    content:\n`;
+            yaml += `      topics:\n`;
+            yaml += `        ${p.languages[0]}:\n`;
+            p.topics.forEach(t => {
+                yaml += `          - "${t}"\n`;
+            });
+            yaml += `      tone: "Profesional, cercano"\n`;
+            yaml += `    products:\n`;
+            yaml += `      - name: "Plan Basico"\n`;
+            yaml += `        price: ${p.price || 0}\n`;
+            yaml += `        currency: ${p.currency}\n`;
+            yaml += `        stripe_link: "${p.stripe || '#'}"\n`;
+            yaml += `    deploy:\n`;
+            yaml += `      repo: ${p.repo}\n`;
+            yaml += `      branch: main\n`;
+            yaml += `      folder: "/"\n`;
+            yaml += `      auto_deploy: true\n\n`;
+        });
+        
+        return yaml;
+    }
+
+    function showExport() {
+        document.getElementById('exportPanel').style.display = 'block';
+        document.getElementById('exportPanel').scrollIntoView({behavior:'smooth'});
+    }
+
+    function hideExport() {
+        document.getElementById('exportPanel').style.display = 'none';
+    }
+
+    function copyYAML() {
+        const yaml = generateYAML();
+        navigator.clipboard.writeText(yaml).then(()=>{
+            const status = document.getElementById('exportStatus');
+            status.style.display = 'block';
+            status.style.background = 'rgba(34,197,94,0.15)';
+            status.style.color = '#22c55e';
+            status.textContent = 'YAML copied to clipboard!';
+        });
+    }
+
+    async function exportToGitHub() {
+        const token = document.getElementById('githubToken').value.trim();
+        if(!token) {
+            alert('Enter your GitHub token');
+            return;
+        }
+        
+        const status = document.getElementById('exportStatus');
+        status.style.display = 'block';
+        status.style.background = 'rgba(99,102,241,0.15)';
+        status.style.color = '#6366f1';
+        status.textContent = 'Pushing to GitHub...';
+        
+        try {
+            const yaml = generateYAML();
+            
+            // First get current file (need SHA)
+            const getResp = await fetch('https://api.github.com/repos/uri2203/OrdinalMK/contents/config/projects.yaml', {
+                headers: {'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json'}
+            });
+            
+            let sha = '';
+            if(getResp.ok) {
+                const fileData = await getResp.json();
+                sha = fileData.sha;
+            }
+            
+            // Create or update file
+            const body = {
+                message: `config: update projects via OrdinalMK dashboard`,
+                content: btoa(unescape(encodeURIComponent(yaml))),
+                branch: 'main'
+            };
+            if(sha) body.sha = sha;
+            
+            const putResp = await fetch('https://api.github.com/repos/uri2203/OrdinalMK/contents/config/projects.yaml', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if(putResp.ok) {
+                status.style.background = 'rgba(34,197,94,0.15)';
+                status.style.color = '#22c55e';
+                status.innerHTML = 'Config pushed to GitHub! <a href="https://github.com/uri2203/OrdinalMK/actions" target="_blank" style="color:#22c55e">Run workflow manually</a>';
+            } else {
+                const err = await putResp.json();
+                status.style.background = 'rgba(239,68,68,0.15)';
+                status.style.color = '#ef4444';
+                status.textContent = `Error: ${err.message}`;
+            }
+        } catch(e) {
+            status.style.background = 'rgba(239,68,68,0.15)';
+            status.style.color = '#ef4444';
+            status.textContent = `Error: ${e.message}`;
+        }
     }
 
     // Init

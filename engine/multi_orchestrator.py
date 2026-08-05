@@ -19,6 +19,9 @@ from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
 from engine.publishers.seo_optimizer import SEOOptimizer
+from engine.distribution.regional import RegionalDistributor
+from engine.distribution.email_segmentation import EmailSegmentation
+from engine.distribution.multilang_landing import MultilangLandingPageGenerator
 
 
 class MultiProjectOrchestrator:
@@ -76,20 +79,30 @@ class MultiProjectOrchestrator:
             'tasks': {}
         }
         
+        languages = config.get('languages', ['es', 'en'])
+        
         # 1. Content
-        print(f"\n  [1/4] Generating content...")
+        print(f"\n  [1/6] Generating content...")
         result['tasks']['content'] = self._generate_content(project_id, config)
         
-        # 2. Landing Pages
-        print(f"  [2/4] Creating landing pages...")
-        result['tasks']['landing'] = self._create_landing(project_id, config)
+        # 2. Landing Pages (multi-lang)
+        print(f"  [2/6] Creating multi-language landing pages...")
+        result['tasks']['landing'] = self._create_multilang_landing(project_id, config)
         
-        # 3. SEO
-        print(f"  [3/4] Optimizing SEO...")
-        result['tasks']['seo'] = self._optimize_seo(project_id, config)
+        # 3. SEO (multi-lang)
+        print(f"  [3/6] Optimizing SEO (multi-language)...")
+        result['tasks']['seo'] = self._optimize_seo_multilang(project_id, config)
         
-        # 4. Deploy (push to GitHub)
-        print(f"  [4/4] Deploying to GitHub...")
+        # 4. Email Segmentation
+        print(f"  [4/6] Setting up email segmentation...")
+        result['tasks']['email'] = self._setup_email_segmentation(project_id, config)
+        
+        # 5. Distribution Report
+        print(f"  [5/6] Generating distribution report...")
+        result['tasks']['distribution'] = self._generate_distribution_report(project_id, config)
+        
+        # 6. Deploy (push to GitHub)
+        print(f"  [6/6] Deploying to GitHub...")
         result['tasks']['deploy'] = self._deploy(project_id, config)
         
         result['completed_at'] = datetime.now().isoformat()
@@ -152,6 +165,35 @@ class MultiProjectOrchestrator:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}
     
+    def _create_multilang_landing(self, project_id: str, config: dict) -> dict:
+        """Create multi-language landing pages with hreflang."""
+        try:
+            languages = config.get('languages', ['es', 'en'])
+            landing_gen = MultilangLandingPageGenerator(project_id, languages)
+            
+            created = 0
+            
+            # Generate main landing in all languages
+            concept = config.get('concept', {})
+            pricing = config.get('pricing', {})
+            testimonials = config.get('testimonials', [])
+            
+            results = landing_gen.generate_multilang_landing(
+                slug='index',
+                content=concept,
+                pricing=pricing,
+                testimonials=testimonials
+            )
+            
+            created = len(results)
+            for lang, path in results.items():
+                print(f"    Landing [{lang}]: {path}")
+            
+            return {'status': 'ok', 'count': created, 'languages': list(results.keys())}
+        except Exception as e:
+            print(f"    Error: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
     def _optimize_seo(self, project_id: str, config: dict) -> dict:
         """Generate SEO assets for a project."""
         try:
@@ -173,6 +215,86 @@ class MultiProjectOrchestrator:
             print(f"    Robots: {robots}")
             
             return {'status': 'ok'}
+        except Exception as e:
+            print(f"    Error: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    def _optimize_seo_multilang(self, project_id: str, config: dict) -> dict:
+        """Generate multi-language SEO assets with hreflang."""
+        try:
+            languages = config.get('languages', ['es', 'en'])
+            distributor = RegionalDistributor(project_id, languages)
+            
+            # Generate sitemaps per language
+            sitemaps = distributor.generate_sitemap_per_language()
+            
+            for lang, sitemap_path in sitemaps.items():
+                print(f"    Sitemap [{lang}]: {sitemap_path}")
+            
+            # Generate robots.txt
+            robots_content = f"""User-agent: *
+Allow: /
+
+Sitemap: https://{config['domain']}/sitemap_index.xml
+
+# OrdinalMK — Multi-language SEO
+# Languages: {', '.join(languages)}
+"""
+            robots_path = Path(__file__).parent.parent / "published" / project_id / "robots.txt"
+            robots_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(robots_path, 'w', encoding='utf-8') as f:
+                f.write(robots_content)
+            
+            print(f"    Robots: {robots_path}")
+            
+            return {'status': 'ok', 'sitemaps': list(sitemaps.keys())}
+        except Exception as e:
+            print(f"    Error: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    def _setup_email_segmentation(self, project_id: str, config: dict) -> dict:
+        """Set up email segmentation by language."""
+        try:
+            languages = config.get('languages', ['es', 'en'])
+            email_engine = EmailSegmentation(project_id, languages)
+            
+            # Generate segmentation report
+            report = email_engine.get_segmentation_report()
+            
+            for lang, data in report['campaigns'].items():
+                print(f"    Email [{lang}]: {data['name']} - {len(data['templates'])} templates")
+            
+            # Save report
+            output_dir = Path(__file__).parent.parent / "published" / project_id
+            output_dir.mkdir(parents=True, exist_ok=True)
+            report_path = output_dir / "email_segmentation.json"
+            with open(report_path, 'w', encoding='utf-8') as f:
+                json.dump(report, f, indent=2, default=str)
+            
+            return {'status': 'ok', 'languages': list(report['campaigns'].keys())}
+        except Exception as e:
+            print(f"    Error: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    def _generate_distribution_report(self, project_id: str, config: dict) -> dict:
+        """Generate comprehensive distribution report."""
+        try:
+            languages = config.get('languages', ['es', 'en'])
+            distributor = RegionalDistributor(project_id, languages)
+            
+            report = distributor.get_region_report()
+            
+            for lang, data in report['regions'].items():
+                print(f"    Region [{lang}]: {data['name']} - {data['pages_published']} pages, {len(data['countries'])} countries")
+            
+            # Save report
+            output_dir = Path(__file__).parent.parent / "published" / project_id
+            output_dir.mkdir(parents=True, exist_ok=True)
+            report_path = output_dir / "distribution_report.json"
+            with open(report_path, 'w', encoding='utf-8') as f:
+                json.dump(report, f, indent=2, default=str)
+            
+            return {'status': 'ok', 'regions': list(report['regions'].keys())}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}
@@ -222,12 +344,17 @@ class MultiProjectOrchestrator:
             
             content_count = tasks.get('content', {}).get('count', 0)
             landing_count = tasks.get('landing', {}).get('count', 0)
+            email_langs = tasks.get('email', {}).get('languages', [])
+            seo_langs = tasks.get('seo', {}).get('sitemaps', [])
+            dist_regions = tasks.get('distribution', {}).get('regions', [])
             
             print(f"\n  {result['name']}:")
             print(f"    Status: {status}")
             print(f"    Articles: {content_count}")
-            print(f"    Landing pages: {landing_count}")
-            print(f"    SEO: {tasks.get('seo', {}).get('status', 'N/A')}")
+            print(f"    Landing pages: {landing_count} (multi-lang)")
+            print(f"    Email: {', '.join(email_langs)}")
+            print(f"    SEO: {', '.join(seo_langs)}")
+            print(f"    Regions: {', '.join(dist_regions)}")
             print(f"    Deploy: {tasks.get('deploy', {}).get('status', 'N/A')}")
     
     def _save_results(self):

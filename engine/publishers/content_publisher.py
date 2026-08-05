@@ -11,9 +11,9 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# ──────────────────────────────────────────────────
+# --------------------------------------------------
 # CONFIG
-# ──────────────────────────────────────────────────
+# --------------------------------------------------
 PROJECTS_DIR = Path(__file__).parent.parent.parent
 DATA_DIR = Path(__file__).parent.parent / "docs" / "data"
 CALENDAR_DIR = Path(__file__).parent / "calendar"
@@ -440,7 +440,21 @@ Wissen ohne Handeln ist nutzlos. Setze um, was du lernst, sofort um.
         return f"{slug}-{hash_suffix}"
     
     def _generate_html(self, article: dict) -> str:
-        """Generate complete HTML page for article."""
+        """Generate complete HTML page for article with hreflang tags."""
+        # Generate hreflang links for all languages
+        hreflang_links = []
+        supported_langs = ['es', 'en', 'pt', 'fr', 'de']
+        lang_locales = {
+            'es': 'es-MX', 'en': 'en-US', 'pt': 'pt-BR', 'fr': 'fr-FR', 'de': 'de-DE'
+        }
+        
+        for lang in supported_langs:
+            locale = lang_locales.get(lang, lang)
+            hreflang_links.append(f'    <link rel="alternate" hreflang="{locale}" href="https://yayika.com/blog/{article["slug"]}">')
+        
+        # x-default
+        hreflang_links.append('    <link rel="alternate" hreflang="x-default" href="https://yayika.com/blog/{article["slug"]}">')
+        
         return f"""<!DOCTYPE html>
 <html lang="{article['language']}">
 <head>
@@ -452,8 +466,9 @@ Wissen ohne Handeln ist nutzlos. Setze um, was du lernst, sofort um.
     <meta property="og:title" content="{article['title']}">
     <meta property="og:description" content="{article['meta_description']}">
     <meta property="og:type" content="article">
-    <meta property="og:locale" content="{article['language']}_MX">
+    <meta property="og:locale" content="{lang_locales.get(article['language'], article['language'] + '_MX')}">
     <link rel="canonical" href="https://yayika.com/blog/{article['slug']}">
+{chr(10).join(hreflang_links)}
     <style>
         :root {{ --primary: #6366f1; --bg: #0f1117; --surface: #1a1d27; --text: #e4e6f0; --muted: #8b8fa3; }}
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -470,6 +485,9 @@ Wissen ohne Handeln ist nutzlos. Setze um, was du lernst, sofort um.
         .meta {{ color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }}
         .cta {{ background: var(--primary); color: white; padding: 1rem 2rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin: 2rem 0; }}
         .cta:hover {{ opacity: 0.9; }}
+        .lang-switcher {{ position: fixed; bottom: 20px; right: 20px; background: var(--surface); padding: 8px; border-radius: 8px; border: 1px solid #2d3140; z-index: 999; }}
+        .lang-switcher a {{ display: inline-block; padding: 6px 12px; color: var(--muted); text-decoration: none; font-size: 0.85rem; }}
+        .lang-switcher a:hover, .lang-switcher a.active {{ color: var(--primary); background: var(--primary); color: white; border-radius: 4px; }}
     </style>
 </head>
 <body>
@@ -484,6 +502,9 @@ Wissen ohne Handeln ist nutzlos. Setze um, was du lernst, sofort um.
             {'Descubre Yayika' if article['language'] == 'es' else 'Discover Yayika' if article['language'] == 'en' else 'Decouvrir Yayika' if article['language'] == 'fr' else 'Entdecke Yayika' if article['language'] == 'de' else 'Descubra Yayika'}
         </button>
     </article>
+    <div class="lang-switcher">
+        {''.join(f'<a href="/blog/{article["slug"]}" class="{"active" if l == article["language"] else ""}">{l.upper()}</a>' for l in supported_langs)}
+    </div>
     <script type="application/ld+json">
     {{
         "@context": "https://schema.org",
@@ -493,7 +514,8 @@ Wissen ohne Handeln ist nutzlos. Setze um, was du lernst, sofort um.
         "author": {{ "@type": "Organization", "name": "Yayika" }},
         "publisher": {{ "@type": "Organization", "name": "Yayika" }},
         "datePublished": "{article.get('published_at', datetime.now().isoformat())}",
-        "inLanguage": "{article['language']}"
+        "inLanguage": "{article['language']}",
+        "inLanguage": "{lang_locales.get(article['language'], article['language'] + '_MX')}"
     }}
     </script>
 </body>

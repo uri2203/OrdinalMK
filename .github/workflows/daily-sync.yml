@@ -1,0 +1,44 @@
+# OrdinalMK — Daily Data Sync
+# Runs every day at 3am UTC (9pm Mexico time)
+# Pulls data from Stripe, Resend, Supabase and updates dashboard JSON
+
+name: Daily Sync
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Every day at 3am UTC
+  workflow_dispatch:      # Manual trigger button
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Run sync engine
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python sync.py
+      
+      - name: Commit and push if changed
+        run: |
+          git config user.name "OrdinalMK Bot"
+          git config user.email "bot@ordinalmk.dev"
+          git add docs/data/
+          git diff --staged --quiet || git commit -m "sync: daily data update $(date +'%Y-%m-%d')"
+          git push

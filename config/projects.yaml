@@ -1,127 +1,327 @@
-# Marketing Engine — Configuración Multi-Proyecto
-# Cada proyecto define sus fuentes de datos, canales y metas.
+# ═══════════════════════════════════════════════════════
+# OrdinalMK — Multi-Project Configuration
+# Each project defines its own identity, content, and channels
+# ═══════════════════════════════════════════════════════
 
 projects:
+
+  # ─────────────────────────────────────────────────────
+  # YAYIKA — Plataforma para mujeres emprendedoras
+  # ─────────────────────────────────────────────────────
   yayika:
-    name: "Yayika"
-    description: "Ecosistema económico para mujeres — productos digitales, comunidad, mentoring"
-    domain: "yayika.com"
-    languages: ["es", "en", "pt", "fr", "de"]
-    primary_language: "es"
-    timezone: "America/Mexico_City"
-    currency: "MXN"
+    name: Yayika
+    domain: yayika.com
+    github_repo: uri2203/yayika
+    concept: "Plataforma para mujeres emprendedoras"
+    tagline: "Transforma tu vida con Yayika"
+    audience:
+      demographic: "Mujeres 25-45 años"
+      location: "Latinoamerica, España, Brasil"
+      interests: ["emprendimiento", "salud", "productividad", "comunidad"]
+      pain_points:
+        - "No tienen claridad sobre su ciclo menstrual"
+        - "Les cuesta organizar su vida y negocios"
+        - "Sienten que están solas en su camino emprendedor"
+        - "No encuentran productos digitales hechos para ellas"
     
-    # Fuentes de datos
-    sources:
-      plausible:
-        site_id: "yayika.com"
-        api_url: "https://plausible.io/api"
-      supabase:
-        url: "https://odbhxiymteppgaqqdsoy.supabase.co"
-        # key loaded from env: SUPABASE_ANON_KEY
-      stripe:
-        # key loaded from env: STRIPE_SECRET_KEY
-        prices:
-          semilla: "price_semilla_179"
-          guerrera: "price_guerrera_349"
-          diamante: "price_diamante_549"
-      resend:
-        # key loaded from env: RESEND_API_KEY
-        from_email: "marketing@yayika.com"
+    languages: [es, en, pt, fr, de]
+    primary_language: es
+    timezone: America/Mexico_City
+    
+    # Content Strategy
+    content:
+      topics:
+        es:
+          - "Como trackear tu ciclo menstrual para mejorar tu productividad"
+          - "5 estrategias para mujeres emprendedoras en 2026"
+          - "Guia completa: planificador digital para mujeres"
+          - "Beneficios de una comunidad de mujeres emprendedoras"
+          - "Como organizar tu vida con un planner digital"
+          - "Menstruacion y trabajo: tips para productividad"
+          - "Productos digitales que toda mujer necesita"
+          - "Como empezar tu negocio siendo mujer en Latinoamerica"
+          - "Salud menstrual: lo que nadie te cuenta"
+          - "Networking para mujeres: como crear tu circulo de apoyo"
+          - "Balance vida-mujer-emprendedora: guia practica"
+          - "Como precios tu productos digitales como mujer"
+        en:
+          - "How to track your menstrual cycle for better productivity"
+          - "5 strategies for women entrepreneurs in 2026"
+          - "Complete guide: digital planner for women"
+          - "Benefits of a women entrepreneur community"
+          - "How to organize your life with a digital planner"
+          - "Menstruation and work: productivity tips"
+          - "Digital products every woman needs"
+        pt:
+          - "Como rastrear seu ciclo menstrual para melhor produtividade"
+          - "5 estrategias para mulheres empreendedoras em 2026"
+          - "Guia completo: planejador digital para mulheres"
+        fr:
+          - "Comment suivre votre cycle menstruel pour une meilleure productivité"
+          - "5 stratégies pour les femmes entrepreneures en 2026"
+        de:
+          - "Wie du deinen Menstruationszyklus für mehr Produktivität trackst"
+          - "5 Strategien für Unternehmerinnen 2026"
+      
+      tone: "Cálido, empático, inspirador"
+      style: "Práctico con tips accionables"
+      cta: "Descubre Yayika"
+    
+    # Email Sequences
+    email:
+      from: "Yayika <marketing@yayika.com>"
+      sequences:
+        welcome:
+          delay_hours: 0
+          trigger: "Nueva suscripción"
+          languages: [es, en, pt, fr, de]
+        nurture:
+          delay_hours: 48
+          trigger: "48h después de welcome"
+          languages: [es, en, pt, fr, de]
+        upsell:
+          delay_hours: 168
+          trigger: "7 días después de nurture"
+          languages: [es, en, pt, fr, de]
+    
+    # Products & Pricing
+    products:
+      - name: "Plan Semilla"
+        price: 179
+        currency: MXN
+        stripe_link: "https://buy.stripe.com/00wcN502q0xY2481elgA80f"
+        features: ["3 productos", "Comunidad básica", "Tracker de ciclo"]
+      - name: "Plan Guerrera"
+        price: 349
+        currency: MXN
+        stripe_link: "https://buy.stripe.com/14A4gzeXk0xY4cg3mtgA80g"
+        features: ["Productos ilimitados", "Comunidad premium", "Mentoring mensual", "Sin comisiones"]
+        popular: true
+      - name: "Plan Diamante"
+        price: 549
+        currency: MXN
+        stripe_link: "https://buy.stripe.com/cNi9ATdTgfsSbEI4qxgA80h"
+        features: ["Todo de Guerrera", "Mentoring 1:1", "Soporte prioritario", "Todas las herramientas"]
+    
+    # Landing Pages
+    landing_pages:
+      - name: "Principal"
+        slug: "/"
+        headline: "Transforma tu vida con Yayika"
+        subtitle: "La plataforma #1 para mujeres emprendedoras"
+      - name: "Precios"
+        slug: "/precios"
+        headline: "Planes que se adaptan a ti"
+        subtitle: "Desde $179/mes"
+      - name: "Comunidad"
+        slug: "/comunidad"
+        headline: "Únete a miles de mujeres"
+        subtitle: "Comunidad de apoyo y networking"
     
     # SEO
     seo:
-      sitemap_url: "https://yayika.com/sitemap.xml"
       target_keywords:
-        es:
-          - "tracker ciclo menstrual"
-          - "planificador mujeres"
-          - "productos digitales mujeres"
-          - "comunidad mujeres emprendedoras"
-        en:
-          - "menstrual cycle tracker"
-          - "women planner"
-          - "digital products women"
-          - "women entrepreneur community"
-        pt:
-          - "rastreador ciclo menstrual"
-          - "planejador mulheres"
-          - "produtos digitais mulheres"
-        fr:
-          - "suivi cycle menstruel"
-          - "planificateur femmes"
-          - "produits numériques femmes"
-        de:
-          - "zyklus tracking frauen"
-          - "planer frauen"
-          - "digitale produkte frauen"
+        es: ["tracker ciclo menstrual", "planificador mujeres", "productos digitales mujeres", "comunidad mujeres emprendedoras"]
+        en: ["menstrual cycle tracker", "women planner", "digital products women"]
+        pt: ["rastreador ciclo menstrual", "planejador mulheres"]
     
-    # Email
+    # GitHub Pages
+    deploy:
+      repo: uri2203/yayika
+      branch: main
+      folder: "/"
+      auto_deploy: true
+
+  # ─────────────────────────────────────────────────────
+  # LASTMILE — Plataforma de delivery/logística
+  # ─────────────────────────────────────────────────────
+  lastmile:
+    name: LastMile Platform
+    domain: lastmile-platform.com
+    github_repo: uri2203/lastmile-platform
+    concept: "Plataforma de delivery y logística de última milla"
+    tagline: "Optimiza tu delivery con LastMile"
+    audience:
+      demographic: "Empresas de delivery, restaurantes, retailers"
+      location: "Latinoamerica"
+      interests: ["logística", "delivery", "optimización", "tecnología"]
+      pain_points:
+        - "Costos altos de última milla"
+        - "Rutas ineficientes"
+        - "Falta de visibilidad en tiempo real"
+        - "Satisfacción del cliente baja"
+    
+    languages: [es, en]
+    primary_language: es
+    timezone: America/Mexico_City
+    
+    content:
+      topics:
+        es:
+          - "Como optimizar la ultima milla en tu negocio de delivery"
+          - "5 herramientas para mejorar tu logistica de delivery"
+          - "Guia completa: rutas de entrega eficientes"
+          - "Como reducir costos de delivery en un 30%"
+          - "Tracking en tiempo real: por que es essential"
+          - "Delivery sostenible: tendencias 2026"
+          - "Como escalar tu negocio de delivery"
+          - "Errores comunes en logistica de ultima milla"
+        en:
+          - "How to optimize last mile delivery for your business"
+          - "5 tools to improve your delivery logistics"
+          - "Complete guide: efficient delivery routes"
+          - "How to reduce delivery costs by 30%"
+          - "Real-time tracking: why it's essential"
+      tone: "Profesional, técnico, confiable"
+      style: "Datos y casos de éxito"
+      cta: "Ver demo gratis"
+    
     email:
+      from: "LastMile <info@lastmile-platform.com>"
+      sequences:
+        demo:
+          delay_hours: 0
+          trigger: "Solicitud de demo"
+          languages: [es, en]
+        onboarding:
+          delay_hours: 24
+          trigger: "24h después de demo"
+          languages: [es, en]
+    
+    products:
+      - name: "Starter"
+        price: 0
+        currency: USD
+        stripe_link: "#"
+        features: ["100 entregas/mes", "Dashboard básico", "Soporte email"]
+      - name: "Professional"
+        price: 99
+        currency: USD
+        stripe_link: "#"
+        features: ["1000 entregas/mes", "Rutas optimizadas", "Tracking en tiempo real", "Soporte prioritario"]
+      - name: "Enterprise"
+        price: 0
+        currency: USD
+        stripe_link: "#"
+        features: ["Entregas ilimitadas", "API completa", "Soporte dedicado", "SLA garantizado"]
+        note: "Contactar para precio"
+    
+    deploy:
+      repo: uri2203/lastmile-platform
+      branch: main
+      folder: "/"
+      auto_deploy: true
+
+  # ─────────────────────────────────────────────────────
+  # TUIALISTA — Servicio de IA personalizado
+  # ─────────────────────────────────────────────────────
+  tuialista:
+    name: TuIAlista
+    domain: tuialista.com
+    github_repo: uri2203/tuialista-site
+    concept: "Servicio de IA personalizado para profesionales y empresas"
+    tagline: "Tu asistente IA, a tu medida"
+    audience:
+      demographic: "Profesionales, empresas, emprendedores"
+      location: "Global (LATAM, España, USA)"
+      interests: ["inteligencia artificial", "automatización", "productividad", "innovación"]
+      pain_points:
+        - "No saben cómo usar IA en su negocio"
+        - "Herramientas de IA son demasiado genéricas"
+        - "Falta de tiempo para implementar IA"
+        - "No tienen equipo técnico de IA"
+    
+    languages: [es, en]
+    primary_language: es
+    timezone: America/Mexico_City
+    
+    content:
+      topics:
+        es:
+          - "Como implementar IA en tu negocio en 2026"
+          - "5 casos de uso de IA para empresarios"
+          - "Guia completa: asistentes IA para tu empresa"
+          - "IA generativa: como aprovecharla al maximo"
+          - "Automatiza tu negocio con herramientas de IA"
+          - "El futuro del trabajo: IA y productividad"
+          - "Por que tu negocio necesita un asistente IA"
+          - "ROI de implementar IA en tu empresa"
+        en:
+          - "How to implement AI in your business in 2026"
+          - "5 AI use cases for entrepreneurs"
+          - "Complete guide: AI assistants for your company"
+          - "Generative AI: how to maximize it"
+          - "Automate your business with AI tools"
+      tone: "Moderno, innovador, accesible"
+      style: "Educativo con ejemplos prácticos"
+      cta: "Prueba gratis"
+    
+    email:
+      from: "TuIAlista <hello@tuialista.com>"
       sequences:
         welcome:
-          subject_es: "Bienvenida a Yayika"
-          subject_en: "Welcome to Yayika"
           delay_hours: 0
+          trigger: "Registro"
+          languages: [es, en]
         nurture:
-          subject_es: "Tu guía para el éxito"
-          subject_en: "Your guide to success"
           delay_hours: 48
-        upsell:
-          subject_es: "Desbloquea tu potencial"
-          subject_en: "Unlock your potential"
+          trigger: "48h después de welcome"
+          languages: [es, en]
+        conversion:
           delay_hours: 168
+          trigger: "7 días después de nurture"
+          languages: [es, en]
     
-    # Metas
-    goals:
-      monthly_unique_visitors: 10000
-      monthly_email_subscribers: 500
-      monthly_revenue_mxn: 50000
-      conversion_rate_pct: 2.5
+    products:
+      - name: "Free"
+        price: 0
+        currency: USD
+        stripe_link: "#"
+        features: ["100 consultas/mes", "IA básica", "Sin integraciones"]
+      - name: "Pro"
+        price: 29
+        currency: USD
+        stripe_link: "#"
+        features: ["Consultas ilimitadas", "IA avanzada", "Integraciones", "Soporte prioritario"]
+      - name: "Enterprise"
+        price: 0
+        currency: USD
+        stripe_link: "#"
+        features: ["Todo Pro", "API dedicada", "Personalización completa", "SLA 99.9%"]
+        note: "Contactar para precio"
+    
+    deploy:
+      repo: uri2203/tuialista-site
+      branch: main
+      folder: "/"
+      auto_deploy: true
 
-  lastmile:
-    name: "LastMile Platform"
-    description: "Plataforma de delivery/logística"
-    domain: "lastmile-platform.com"
-    languages: ["es", "en"]
-    primary_language: "es"
-    timezone: "America/Mexico_City"
-    currency: "MXN"
-    sources:
-      plausible:
-        site_id: "lastmile-platform.com"
-    goals:
-      monthly_unique_visitors: 5000
-
-  tuialista:
-    name: "TuIAlista"
-    description: "Sitio web TuIAlista"
-    domain: "tuialista.com"
-    languages: ["es", "en"]
-    primary_language: "es"
-    timezone: "America/Mexico_City"
-    sources:
-      plausible:
-        site_id: "tuialista.com"
-    goals:
-      monthly_unique_visitors: 3000
-
-# Configuración global del motor
+# ═══════════════════════════════════════════════════════
+# GLOBAL SETTINGS
+# ═══════════════════════════════════════════════════════
 engine:
-  data_dir: "./data"
-  logs_dir: "./logs"
-  reports_dir: "./reports"
+  name: OrdinalMK
+  version: "1.0"
   
   # Scheduler
-  scheduler:
-    timezone: "America/Mexico_City"
-    content_generation_cron: "0 2 * * 1"  # Lunes 2am
-    seo_check_cron: "0 6 * * 1"           # Lunes 6am
-    email_report_cron: "0 8 1 * *"         # Primer día del mes 8am
-    analytics_sync_cron: "0 3 * * *"       # Diario 3am
+  schedule:
+    timezone: America/Mexico_City
+    content_generation: "0 3 * * *"      # Daily 3am UTC
+    email_campaigns: "0 14 * * 1,3,5"    # Mon/Wed/Fri 2pm UTC
+    seo_audit: "0 6 * * 1"              # Monday 6am UTC
+    monthly_report: "0 8 1 * *"         # 1st of month 8am
   
-  # Rate limits
-  rate_limits:
-    api_calls_per_minute: 60
-    email_sends_per_hour: 100
-    content_generations_per_day: 10
+  # Rate Limits
+  limits:
+    articles_per_day: 2
+    emails_per_hour: 50
+    landing_pages_per_week: 3
+  
+  # API Keys (loaded from env)
+  apis:
+    stripe: ${STRIPE_SECRET_KEY}
+    resend: ${RESEND_API_KEY}
+    supabase_url: ${SUPABASE_URL}
+    supabase_key: ${SUPABASE_ANON_KEY}
+    plausible: ${PLAUSIBLE_API_KEY}
+    google_search_console: ${GSC_CREDENTIALS}

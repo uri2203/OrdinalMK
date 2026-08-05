@@ -1,14 +1,20 @@
-# OrdinalMK — Daily Marketing Automation
-# Runs every day at 3am UTC (9pm Mexico time)
-# 1. Syncs data from Stripe, Resend, Supabase
-# 2. Runs marketing automation (content, SEO, landing pages, email)
+# ═══════════════════════════════════════════════════════
+# OrdinalMK — Multi-Project Daily Marketing
+# Runs daily, generates content for ALL projects
+# Each project gets its own content, landing pages, SEO
+# ═══════════════════════════════════════════════════════
 
-name: Daily Marketing
+name: Daily Marketing — All Projects
 
 on:
   schedule:
     - cron: '0 3 * * *'  # Every day at 3am UTC
-  workflow_dispatch:      # Manual trigger button
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project ID (leave empty for all)'
+        required: false
+        default: ''
 
 jobs:
   marketing:
@@ -26,29 +32,25 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests pyyaml
       
-      - name: Sync data (Stripe, Resend, Supabase)
-        env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: python sync.py
-      
-      - name: Run marketing automation
+      - name: Run multi-project orchestrator
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          python engine/orchestrator.py yayika
+          if [ -n "${{ github.event.inputs.project }}" ]; then
+            python engine/multi_orchestrator.py run-project -p ${{ github.event.inputs.project }}
+          else
+            python engine/multi_orchestrator.py run
+          fi
       
-      - name: Commit and push all changes
+      - name: Commit and push changes
         run: |
           git config user.name "OrdinalMK Bot"
           git config user.email "bot@ordinalmk.dev"
-          git add docs/data/ published/ logs/
-          git diff --staged --quiet || git commit -m "marketing: daily automation $(date +'%Y-%m-%d')"
+          git add docs/data/ docs/projects/ published/ logs/
+          git diff --staged --quiet || git commit -m "marketing: $(date +'%Y-%m-%d') — all projects"
           git push

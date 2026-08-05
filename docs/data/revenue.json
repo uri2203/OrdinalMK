@@ -1,32 +1,182 @@
-[
-  {"date": "2026-07-06", "revenue_mxn": 895, "transactions": 2, "mrr": 6250},
-  {"date": "2026-07-07", "revenue_mxn": 1248, "transactions": 3, "mrr": 6500},
-  {"date": "2026-07-08", "revenue_mxn": 549, "transactions": 1, "mrr": 6500},
-  {"date": "2026-07-09", "revenue_mxn": 1790, "transactions": 4, "mrr": 7250},
-  {"date": "2026-07-10", "revenue_mxn": 895, "transactions": 2, "mrr": 7250},
-  {"date": "2026-07-11", "revenue_mxn": 2097, "transactions": 5, "mrr": 8000},
-  {"date": "2026-07-12", "revenue_mxn": 349, "transactions": 1, "mrr": 8000},
-  {"date": "2026-07-13", "revenue_mxn": 0, "transactions": 0, "mrr": 8000},
-  {"date": "2026-07-14", "revenue_mxn": 1790, "transactions": 4, "mrr": 8750},
-  {"date": "2026-07-15", "revenue_mxn": 2646, "transactions": 6, "mrr": 9500},
-  {"date": "2026-07-16", "revenue_mxn": 1248, "transactions": 3, "mrr": 9500},
-  {"date": "2026-07-17", "revenue_mxn": 895, "transactions": 2, "mrr": 9500},
-  {"date": "2026-07-18", "revenue_mxn": 3145, "transactions": 7, "mrr": 10750},
-  {"date": "2026-07-19", "revenue_mxn": 549, "transactions": 1, "mrr": 10750},
-  {"date": "2026-07-20", "revenue_mxn": 0, "transactions": 0, "mrr": 10750},
-  {"date": "2026-07-21", "revenue_mxn": 2195, "transactions": 5, "mrr": 11500},
-  {"date": "2026-07-22", "revenue_mxn": 1790, "transactions": 4, "mrr": 12250},
-  {"date": "2026-07-23", "revenue_mxn": 895, "transactions": 2, "mrr": 12250},
-  {"date": "2026-07-24", "revenue_mxn": 3490, "transactions": 8, "mrr": 13500},
-  {"date": "2026-07-25", "revenue_mxn": 1248, "transactions": 3, "mrr": 13500},
-  {"date": "2026-07-26", "revenue_mxn": 549, "transactions": 1, "mrr": 13500},
-  {"date": "2026-07-27", "revenue_mxn": 0, "transactions": 0, "mrr": 13500},
-  {"date": "2026-07-28", "revenue_mxn": 2694, "transactions": 6, "mrr": 14750},
-  {"date": "2026-07-29", "revenue_mxn": 1790, "transactions": 4, "mrr": 15500},
-  {"date": "2026-07-30", "revenue_mxn": 895, "transactions": 2, "mrr": 15500},
-  {"date": "2026-07-31", "revenue_mxn": 3594, "transactions": 8, "mrr": 16750},
-  {"date": "2026-08-01", "revenue_mxn": 2195, "transactions": 5, "mrr": 17500},
-  {"date": "2026-08-02", "revenue_mxn": 549, "transactions": 1, "mrr": 17500},
-  {"date": "2026-08-03", "revenue_mxn": 0, "transactions": 0, "mrr": 17500},
-  {"date": "2026-08-04", "revenue_mxn": 1790, "transactions": 4, "mrr": 18250}
+﻿[
+    {
+        "date":  "2026-07-06",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-07",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-08",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-09",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-10",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-11",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-12",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-13",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-14",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-15",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-16",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-17",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-18",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-19",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-20",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-21",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-22",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-23",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-24",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-25",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-26",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-27",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-28",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-29",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-30",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-07-31",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-08-01",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-08-02",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-08-03",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    },
+    {
+        "date":  "2026-08-04",
+        "revenue_mxn":  0,
+        "mrr":  0,
+        "transactions":  0
+    }
 ]

@@ -1,11 +1,12 @@
-{
-  "generated_at": "2026-08-05T10:00:00",
-  "today_visitors": 187,
-  "yesterday_visitors": 165,
-  "today_pageviews": 423,
-  "total_subscribers": 8,
-  "total_articles": 10,
-  "month_revenue_mxn": 48750,
-  "tasks_total_24h": 6,
-  "tasks_completed_24h": 6
+﻿{
+    "active_subscriptions":  0,
+    "arr":  0,
+    "total_subscribers":  0,
+    "total_articles":  10,
+    "month_revenue_mxn":  0,
+    "today_visitors":  0,
+    "generated_at":  "2026-08-05T10:52:17",
+    "yesterday_visitors":  0,
+    "mrr":  0,
+    "today_pageviews":  0
 }

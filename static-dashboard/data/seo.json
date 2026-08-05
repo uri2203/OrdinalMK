@@ -1,0 +1,46 @@
+{
+  "traffic_by_language": {"es": 45, "en": 25, "pt": 15, "fr": 10, "de": 5},
+  "traffic_by_country": {"MX": 40, "US": 20, "CO": 10, "AR": 8, "ES": 7, "BR": 8, "OTHER": 7},
+  "top_pages": [
+    {"page": "/", "views": 1250},
+    {"page": "/tienda", "views": 820},
+    {"page": "/cuenta/mi-ciclo", "views": 650},
+    {"page": "/comunidad", "views": 520},
+    {"page": "/blog/tracker-ciclo-menstrual", "views": 380},
+    {"page": "/blog/planner-mujeres", "views": 290},
+    {"page": "/precios", "views": 245},
+    {"page": "/blog/productos-digitales", "views": 180}
+  ],
+  "top_referrers": [
+    {"source": "google.com", "visitors": 520},
+    {"source": "direct", "visitors": 380},
+    {"source": "blog-mujeres.com", "visitors": 125},
+    {"source": "emprendedoras.com", "visitors": 95},
+    {"source": "health-women.org", "visals": 72}
+  ],
+  "seo_health": {
+    "total_score": 72,
+    "grade": "B",
+    "rankings_count": 10,
+    "top_10_count": 4,
+    "backlinks_total": 4
+  },
+  "seo_rankings": [
+    {"keyword": "tracker ciclo menstrual", "language": "es", "position": 3, "url": "https://yayika.com"},
+    {"keyword": "comunidad mujeres emprendedoras", "language": "es", "position": 5, "url": "https://yayika.com/comunidad"},
+    {"keyword": "planificador mujeres", "language": "es", "position": 7, "url": "https://yayika.com/tienda"},
+    {"keyword": "rastreador ciclo menstrual", "language": "pt", "position": 8, "url": "https://yayika.com"},
+    {"keyword": "productos digitales mujeres", "language": "es", "position": 12, "url": "https://yayika.com/tienda"},
+    {"keyword": "menstrual cycle tracker", "language": "en", "position": 15, "url": "https://yayika.com"},
+    {"keyword": "digital products women", "language": "en", "position": 18, "url": "https://yayika.com/store"},
+    {"keyword": "women planner digital", "language": "en", "position": 22, "url": "https://yayika.com/store"},
+    {"keyword": "suivi cycle menstruel", "language": "fr", "position": 25, "url": "https://yayika.com"},
+    {"keyword": "zyklus tracking frauen", "language": "de", "position": 30, "url": "https://yayika.com"}
+  ],
+  "backlinks": [
+    {"source_url": "https://blog-mujeres.com/ciclo-menstrual", "anchor_text": "tracker menstrual", "domain_authority": 45},
+    {"source_url": "https://emprendedoras.com/productos-digitales", "anchor_text": "Yayika", "domain_authority": 52},
+    {"source_url": "https://health-women.org/menstrual-tracking", "anchor_text": "menstrual cycle tracker", "domain_authority": 38},
+    {"source_url": "https://tech-women.co/digital-tools", "anchor_text": "digital products for women", "domain_authority": 41}
+  ]
+}

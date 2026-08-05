@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Engine — Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #232733;
+            --border: #2d3140;
+            --text: #e4e6f0;
+            --text-muted: #8b8fa3;
+            --accent: #6366f1;
+            --accent2: #8b5cf6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .project-selector {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .refresh-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .refresh-btn:hover { opacity: 0.85; }
+
+        /* Main Layout */
+        .main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .kpi-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .kpi-change {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .kpi-change.up { color: var(--success); }
+        .kpi-change.down { color: var(--danger); }
+
+        /* Chart Grid */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .chart-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table tr:hover td {
+            background: var(--surface2);
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .badge-info { background: rgba(59,130,246,0.15); color: var(--info); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Task log */
+        .task-log {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .task-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .task-icon.success { background: rgba(34,197,94,0.15); }
+        .task-icon.failed { background: rgba(239,68,68,0.15); }
+        .task-info { flex: 1; }
+        .task-name { font-weight: 500; font-size: 0.9rem; }
+        .task-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        .spinner {
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .chart-grid { grid-template-columns: 1fr; }
+            .main { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>🚀 Marketing Engine</h1>
+        <div class="header-actions">
+            <select class="project-selector" id="projectSelect" onchange="switchProject(this.value)">
+                <option value="all">Todos los proyectos</option>
+                {% for pid, pconfig in projects.items() %}
+                <option value="{{ pid }}">{{ pconfig.name }}</option>
+                {% endfor %}
+            </select>
+            <button class="refresh-btn" onclick="refreshDashboard()">🔄 Actualizar</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card">
+                <div class="kpi-label">Visitantes Hoy</div>
+                <div class="kpi-value" id="kpiVisitors">—</div>
+                <div class="kpi-change" id="kpiVisitorsChange"></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Pageviews</div>
+                <div class="kpi-value" id="kpiPageviews">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Suscriptores</div>
+                <div class="kpi-value" id="kpiSubscribers">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Revenue Mes</div>
+                <div class="kpi-value" id="kpiRevenue">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Artículos</div>
+                <div class="kpi-value" id="kpiArticles">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Tareas 24h</div>
+                <div class="kpi-value" id="kpiTasks">—</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('overview')">📊 Overview</div>
+            <div class="tab" onclick="switchTab('traffic')">🌐 Tráfico</div>
+            <div class="tab" onclick="switchTab('revenue')">💰 Revenue</div>
+            <div class="tab" onclick="switchTab('email')">📧 Email</div>
+            <div class="tab" onclick="switchTab('seo')">🔍 SEO</div>
+            <div class="tab" onclick="switchTab('content')">📝 Contenido</div>
+            <div class="tab" onclick="switchTab('tasks')">⚙️ Tareas</div>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div class="tab-content active" id="tab-overview">
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>📈 Visitantes (30 días)</h3>
+                    <div class="chart-container">
+                        <canvas id="chartVisitors"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>💰 Revenue (30 días)</h3>
+                    <div class="chart-container">
+                        <canvas id="chartRevenue"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>🌐 Tráfico por Idioma</h3>
+                    <div class="chart-container">
+                        <canvas id="chartLanguages"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📧 Email Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="chartEmail"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Traffic -->
+        <div class="tab-content" id="tab-traffic">
+            <div class="chart-card">
+                <h3>📊 Tráfico Diario (30 días)</h3>
+                <div class="chart-container">
+                    <canvas id="chartTrafficDetail"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Revenue -->
+        <div class="tab-content" id="tab-revenue">
+            <div class="chart-card">
+                <h3>💰 Revenue Diario (30 días)</h3>
+                <div class="chart-container">
+                    <canvas id="chartRevenueDetail"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Email -->
+        <div class="tab-content" id="tab-email">
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>📧 Campañas Recientes</h3>
+                    <table class="data-table" id="emailCampaignsTable">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                                <th>Enviados</th>
+                                <th>Opens</th>
+                                <th>Clicks</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="chart-card">
+                    <h3>📈 Crecimiento de Suscriptores</h3>
+                    <div class="chart-container">
+                        <canvas id="chartSubscriberGrowth"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: SEO -->
+        <div class="tab-content" id="tab-seo">
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>🔍 SEO Health Score</h3>
+                    <div class="chart-container">
+                        <canvas id="chartSEOHealth"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📊 Rankings de Keywords</h3>
+                    <table class="data-table" id="seoRankingsTable">
+                        <thead>
+                            <tr>
+                                <th>Keyword</th>
+                                <th>Idioma</th>
+                                <th>Posición</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Content -->
+        <div class="tab-content" id="tab-content">
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>📝 Contenido por Estado</h3>
+                    <div class="chart-container">
+                        <canvas id="chartContentStatus"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🌍 Contenido por Idioma</h3>
+                    <div class="chart-container">
+                        <canvas id="chartContentLanguage"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Tasks -->
+        <div class="tab-content" id="tab-tasks">
+            <div class="chart-card">
+                <h3>⚙️ Log de Tareas Recientes</h3>
+                <div class="task-log" id="taskLog">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Cargando tareas...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    // ──────────────────────────────────────────────
+    // Config & State
+    // ──────────────────────────────────────────────
+    const API_BASE = '';
+    let currentProject = 'all';
+    let charts = {};
+
+    // Chart.js global config
+    Chart.defaults.color = '#8b8fa3';
+    Chart.defaults.borderColor = '#2d3140';
+    Chart.defaults.font.family = 'Inter';
+
+    // ──────────────────────────────────────────────
+    // API Fetch Helper
+    // ──────────────────────────────────────────────
+    async function api(endpoint) {
+        try {
+            const resp = await fetch(`${API_BASE}${endpoint}`);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return await resp.json();
+        } catch (err) {
+            console.error(`API Error: ${endpoint}`, err);
+            return null;
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Dashboard Init
+    // ──────────────────────────────────────────────
+    async function initDashboard() {
+        await loadOverview();
+        await loadProjectData();
+    }
+
+    async function loadOverview() {
+        const data = await api('/api/overview');
+        if (!data) return;
+
+        document.getElementById('kpiVisitors').textContent = data.today_visitors.toLocaleString();
+        document.getElementById('kpiPageviews').textContent = data.today_pageviews.toLocaleString();
+        document.getElementById('kpiSubscribers').textContent = data.total_subscribers.toLocaleString();
+        document.getElementById('kpiRevenue').textContent = `$${data.month_revenue_mxn.toLocaleString()}`;
+        document.getElementById('kpiArticles').textContent = data.total_articles.toLocaleString();
+        document.getElementById('kpiTasks').textContent = `${data.tasks_completed_24h}/${data.tasks_total_24h}`;
+
+        // Visitor trend
+        const changeEl = document.getElementById('kpiVisitorsChange');
+        if (data.yesterday_visitors > 0) {
+            const pct = ((data.today_visitors - data.yesterday_visitors) / data.yesterday_visitors * 100).toFixed(1);
+            changeEl.className = `kpi-change ${pct >= 0 ? 'up' : 'down'}`;
+            changeEl.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct)}% vs ayer`;
+        }
+    }
+
+    async function loadProjectData() {
+        const pid = currentProject === 'all' ? 'yayika' : currentProject;
+
+        // Load analytics
+        const analytics = await api(`/api/project/${pid}/analytics?days=30`);
+        if (analytics && analytics.length) {
+            renderVisitorsChart(analytics);
+            renderTrafficDetailChart(analytics);
+            renderLanguagesChart(analytics);
+        }
+
+        // Load revenue
+        const revenue = await api(`/api/project/${pid}/revenue?days=30`);
+        if (revenue && revenue.length) {
+            renderRevenueChart(revenue);
+            renderRevenueDetailChart(revenue);
+        }
+
+        // Load email
+        const email = await api(`/api/project/${pid}/email`);
+        if (email) {
+            renderEmailTable(email.campaigns);
+            renderSubscriberGrowthChart(email.subscriber_growth);
+        }
+
+        // Load SEO
+        const seo = await api(`/api/project/${pid}/seo`);
+        if (seo && seo.length) {
+            renderSEOHealthChart(seo);
+            renderSEOTable(seo);
+        }
+
+        // Load content
+        const content = await api(`/api/project/${pid}/content`);
+        if (content && content.length) {
+            renderContentCharts(content);
+        }
+
+        // Load tasks
+        const tasks = await api('/api/tasks?limit=30');
+        if (tasks) {
+            renderTaskLog(tasks);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Chart Renderers
+    // ──────────────────────────────────────────────
+    function renderVisitorsChart(data) {
+        const ctx = document.getElementById('chartVisitors').getContext('2d');
+        if (charts.visitors) charts.visitors.destroy();
+
+        const labels = data.map(d => d.date).reverse();
+        const visitors = data.map(d => d.visitors).reverse();
+
+        charts.visitors = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Visitantes',
+                    data: visitors,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: '#2d3140' } }
+                }
+            }
+        });
+    }
+
+    function renderRevenueChart(data) {
+        const ctx = document.getElementById('chartRevenue').getContext('2d');
+        if (charts.revenue) charts.revenue.destroy();
+
+        const labels = data.map(d => d.date).reverse();
+        const revenue = data.map(d => d.revenue_mxn).reverse();
+
+        charts.revenue = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Revenue MXN',
+                    data: revenue,
+                    backgroundColor: 'rgba(34,197,94,0.6)',
+                    borderColor: '#22c55e',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: '#2d3140' } }
+                }
+            }
+        });
+    }
+
+    function renderLanguagesChart(data) {
+        const ctx = document.getElementById('chartLanguages').getContext('2d');
+        if (charts.languages) charts.languages.destroy();
+
+        // Aggregate language data
+        const langTotals = {};
+        data.forEach(d => {
+            try {
+                const langs = typeof d.traffic_by_language === 'string' 
+                    ? JSON.parse(d.traffic_by_language) : (d.traffic_by_language || {});
+                Object.entries(langs).forEach(([lang, count]) => {
+                    langTotals[lang] = (langTotals[lang] || 0) + count;
+                });
+            } catch(e) {}
+        });
+
+        const langNames = { es: 'Español', en: 'English', pt: 'Português', fr: 'Français', de: 'Deutsch' };
+        const labels = Object.keys(langTotals).map(l => langNames[l] || l);
+        const values = Object.values(langTotals);
+
+        charts.languages = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#6366f1', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { padding: 15 } }
+                }
+            }
+        });
+    }
+
+    function renderEmailTable(campaigns) {
+        const tbody = document.querySelector('#emailCampaignsTable tbody');
+        if (!campaigns || !campaigns.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No hay campañas</td></tr>';
+            return;
+        }
+        tbody.innerHTML = campaigns.map(c => `
+            <tr>
+                <td>${c.name}</td>
+                <td><span class="badge badge-${c.status === 'sent' ? 'success' : 'info'}">${c.status}</span></td>
+                <td>${c.recipient_count || 0}</td>
+                <td>${c.open_count || 0}</td>
+                <td>${c.click_count || 0}</td>
+            </tr>
+        `).join('');
+    }
+
+    function renderSubscriberGrowthChart(data) {
+        const ctx = document.getElementById('chartSubscriberGrowth').getContext('2d');
+        if (charts.subGrowth) charts.subGrowth.destroy();
+
+        if (!data || !data.length) return;
+
+        charts.subGrowth = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.date),
+                datasets: [{
+                    label: 'Nuevos Suscriptores',
+                    data: data.map(d => d.count),
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139,92,246,0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function renderSEOHealthChart(rankings) {
+        const ctx = document.getElementById('chartSEOHealth').getContext('2d');
+        if (charts.seoHealth) charts.seoHealth.destroy();
+
+        const positionCounts = { 'Top 3': 0, '4-10': 0, '11-20': 0, '21-50': 0, '50+': 0 };
+        rankings.forEach(r => {
+            const pos = r.position;
+            if (pos <= 3) positionCounts['Top 3']++;
+            else if (pos <= 10) positionCounts['4-10']++;
+            else if (pos <= 20) positionCounts['11-20']++;
+            else if (pos <= 50) positionCounts['21-50']++;
+            else positionCounts['50+']++;
+        });
+
+        charts.seoHealth = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(positionCounts),
+                datasets: [{
+                    data: Object.values(positionCounts),
+                    backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+
+    function renderSEOTable(rankings) {
+        const tbody = document.querySelector('#seoRankingsTable tbody');
+        if (!rankings.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No hay rankings</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rankings.map(r => `
+            <tr>
+                <td><strong>${r.keyword}</strong></td>
+                <td>${r.language.toUpperCase()}</td>
+                <td><span class="badge ${r.position <= 10 ? 'badge-success' : r.position <= 20 ? 'badge-warning' : 'badge-danger'}">#${r.position}</span></td>
+                <td style="color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis">${r.url || '—'}</td>
+            </tr>
+        `).join('');
+    }
+
+    function renderContentCharts(articles) {
+        // Status chart
+        const ctx1 = document.getElementById('chartContentStatus').getContext('2d');
+        if (charts.contentStatus) charts.contentStatus.destroy();
+
+        const statusCounts = {};
+        articles.forEach(a => {
+            statusCounts[a.status] = (statusCounts[a.status] || 0) + 1;
+        });
+
+        charts.contentStatus = new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#f59e0b', '#22c55e', '#6b7280']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Language chart
+        const ctx2 = document.getElementById('chartContentLanguage').getContext('2d');
+        if (charts.contentLang) charts.contentLang.destroy();
+
+        const langCounts = {};
+        articles.forEach(a => {
+            langCounts[a.language] = (langCounts[a.language] || 0) + 1;
+        });
+
+        charts.contentLang = new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(langCounts),
+                datasets: [{
+                    data: Object.values(langCounts),
+                    backgroundColor: ['#6366f1', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function renderTaskLog(tasks) {
+        const container = document.getElementById('taskLog');
+        if (!tasks.length) {
+            container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2rem">No hay tareas registradas</div>';
+            return;
+        }
+        container.innerHTML = tasks.map(t => `
+            <div class="task-item">
+                <div class="task-icon ${t.status === 'completed' ? 'success' : 'failed'}">
+                    ${t.status === 'completed' ? '✅' : '❌'}
+                </div>
+                <div class="task-info">
+                    <div class="task-name">${t.task_type}</div>
+                    <div class="task-meta">${t.project_id || 'global'} · ${t.started_at || ''}</div>
+                </div>
+                <span class="badge badge-${t.status === 'completed' ? 'success' : 'danger'}">${t.status}</span>
+            </div>
+        `).join('');
+    }
+
+    function renderTrafficDetailChart(data) {
+        const ctx = document.getElementById('chartTrafficDetail');
+        if (!ctx) return;
+        renderVisitorsChart(data); // Reuse the same chart
+    }
+
+    function renderRevenueDetailChart(data) {
+        const ctx = document.getElementById('chartRevenueDetail');
+        if (!ctx) return;
+        renderRevenueChart(data);
+    }
+
+    // ──────────────────────────────────────────────
+    // Tab Switching
+    // ──────────────────────────────────────────────
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    function switchProject(pid) {
+        currentProject = pid;
+        loadProjectData();
+    }
+
+    async function refreshDashboard() {
+        await loadOverview();
+        await loadProjectData();
+    }
+
+    // ──────────────────────────────────────────────
+    // Init
+    // ──────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

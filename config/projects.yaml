@@ -1,0 +1,127 @@
+# Marketing Engine — Configuración Multi-Proyecto
+# Cada proyecto define sus fuentes de datos, canales y metas.
+
+projects:
+  yayika:
+    name: "Yayika"
+    description: "Ecosistema económico para mujeres — productos digitales, comunidad, mentoring"
+    domain: "yayika.com"
+    languages: ["es", "en", "pt", "fr", "de"]
+    primary_language: "es"
+    timezone: "America/Mexico_City"
+    currency: "MXN"
+    
+    # Fuentes de datos
+    sources:
+      plausible:
+        site_id: "yayika.com"
+        api_url: "https://plausible.io/api"
+      supabase:
+        url: "https://odbhxiymteppgaqqdsoy.supabase.co"
+        # key loaded from env: SUPABASE_ANON_KEY
+      stripe:
+        # key loaded from env: STRIPE_SECRET_KEY
+        prices:
+          semilla: "price_semilla_179"
+          guerrera: "price_guerrera_349"
+          diamante: "price_diamante_549"
+      resend:
+        # key loaded from env: RESEND_API_KEY
+        from_email: "marketing@yayika.com"
+    
+    # SEO
+    seo:
+      sitemap_url: "https://yayika.com/sitemap.xml"
+      target_keywords:
+        es:
+          - "tracker ciclo menstrual"
+          - "planificador mujeres"
+          - "productos digitales mujeres"
+          - "comunidad mujeres emprendedoras"
+        en:
+          - "menstrual cycle tracker"
+          - "women planner"
+          - "digital products women"
+          - "women entrepreneur community"
+        pt:
+          - "rastreador ciclo menstrual"
+          - "planejador mulheres"
+          - "produtos digitais mulheres"
+        fr:
+          - "suivi cycle menstruel"
+          - "planificateur femmes"
+          - "produits numériques femmes"
+        de:
+          - "zyklus tracking frauen"
+          - "planer frauen"
+          - "digitale produkte frauen"
+    
+    # Email
+    email:
+      sequences:
+        welcome:
+          subject_es: "Bienvenida a Yayika"
+          subject_en: "Welcome to Yayika"
+          delay_hours: 0
+        nurture:
+          subject_es: "Tu guía para el éxito"
+          subject_en: "Your guide to success"
+          delay_hours: 48
+        upsell:
+          subject_es: "Desbloquea tu potencial"
+          subject_en: "Unlock your potential"
+          delay_hours: 168
+    
+    # Metas
+    goals:
+      monthly_unique_visitors: 10000
+      monthly_email_subscribers: 500
+      monthly_revenue_mxn: 50000
+      conversion_rate_pct: 2.5
+
+  lastmile:
+    name: "LastMile Platform"
+    description: "Plataforma de delivery/logística"
+    domain: "lastmile-platform.com"
+    languages: ["es", "en"]
+    primary_language: "es"
+    timezone: "America/Mexico_City"
+    currency: "MXN"
+    sources:
+      plausible:
+        site_id: "lastmile-platform.com"
+    goals:
+      monthly_unique_visitors: 5000
+
+  tuialista:
+    name: "TuIAlista"
+    description: "Sitio web TuIAlista"
+    domain: "tuialista.com"
+    languages: ["es", "en"]
+    primary_language: "es"
+    timezone: "America/Mexico_City"
+    sources:
+      plausible:
+        site_id: "tuialista.com"
+    goals:
+      monthly_unique_visitors: 3000
+
+# Configuración global del motor
+engine:
+  data_dir: "./data"
+  logs_dir: "./logs"
+  reports_dir: "./reports"
+  
+  # Scheduler
+  scheduler:
+    timezone: "America/Mexico_City"
+    content_generation_cron: "0 2 * * 1"  # Lunes 2am
+    seo_check_cron: "0 6 * * 1"           # Lunes 6am
+    email_report_cron: "0 8 1 * *"         # Primer día del mes 8am
+    analytics_sync_cron: "0 3 * * *"       # Diario 3am
+  
+  # Rate limits
+  rate_limits:
+    api_calls_per_minute: 60
+    email_sends_per_hour: 100
+    content_generations_per_day: 10

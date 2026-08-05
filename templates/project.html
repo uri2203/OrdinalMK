@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} — Marketing Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117; --surface: #1a1d27; --surface2: #232733;
+            --border: #2d3140; --text: #e4e6f0; --text-muted: #8b8fa3;
+            --accent: #6366f1; --accent2: #8b5cf6; --success: #22c55e;
+            --warning: #f59e0b; --danger: #ef4444; --info: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+        
+        .header {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem;
+        }
+        .back-btn {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); padding: 0.5rem 1rem; border-radius: 8px;
+            text-decoration: none; font-size: 0.9rem; transition: background 0.2s;
+        }
+        .back-btn:hover { background: var(--border); }
+        .header h1 { font-size: 1.3rem; font-weight: 700; }
+        
+        .main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        
+        .section-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem; margin-bottom: 2rem;
+        }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.5rem;
+        }
+        .card h3 { font-size: 1rem; margin-bottom: 1rem; color: var(--text); }
+        .stat-row {
+            display: flex; justify-content: space-between; padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .stat-label { color: var(--text-muted); font-size: 0.9rem; }
+        .stat-value { font-weight: 600; }
+        
+        .chart-box { position: relative; height: 250px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="back-btn">← Volver</a>
+        <h1>{{ project.name }}</h1>
+        <span style="color:var(--text-muted);font-size:0.9rem">{{ project.domain }}</span>
+    </header>
+
+    <main class="main">
+        <div class="section-grid">
+            <!-- Traffic Summary -->
+            <div class="card">
+                <h3>🌐 Tráfico (30 días)</h3>
+                {% for row in analytics[:1] %}
+                <div class="stat-row">
+                    <span class="stat-label">Visitantes</span>
+                    <span class="stat-value">{{ row.visitors }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Pageviews</span>
+                    <span class="stat-value">{{ row.pageviews }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Bounce Rate</span>
+                    <span class="stat-value">{{ "%.1f"|format(row.bounce_rate) }}%</span>
+                </div>
+                {% endfor %}
+                {% if not analytics %}
+                <p style="color:var(--text-muted);text-align:center;padding:2rem">Sin datos de tráfico</p>
+                {% endif %}
+            </div>
+
+            <!-- Revenue -->
+            <div class="card">
+                <h3>💰 Revenue</h3>
+                {% for row in revenue[:1] %}
+                <div class="stat-row">
+                    <span class="stat-label">Revenue MXN</span>
+                    <span class="stat-value">${{ "%.2f"|format(row.revenue_mxn) }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">MRR</span>
+                    <span class="stat-value">${{ "%.2f"|format(row.mrr) }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Transacciones</span>
+                    <span class="stat-value">{{ row.transactions }}</span>
+                </div>
+                {% endfor %}
+                {% if not revenue %}
+                <p style="color:var(--text-muted);text-align:center;padding:2rem">Sin datos de revenue</p>
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div class="card">
+                <h3>📧 Email</h3>
+                {% if email_stats %}
+                <div class="stat-row">
+                    <span class="stat-label">Campañas</span>
+                    <span class="stat-value">{{ email_stats.total_campaigns }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Destinatarios</span>
+                    <span class="stat-value">{{ email_stats.total_recipients or 0 }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Opens</span>
+                    <span class="stat-value">{{ email_stats.total_opens or 0 }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Clicks</span>
+                    <span class="stat-value">{{ email_stats.total_clicks or 0 }}</span>
+                </div>
+                {% else %}
+                <p style="color:var(--text-muted);text-align:center;padding:2rem">Sin datos de email</p>
+                {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="card">
+                <h3>📝 Contenido</h3>
+                {% for row in content_stats %}
+                <div class="stat-row">
+                    <span class="stat-label">{{ row.status }}</span>
+                    <span class="stat-value">{{ row.count }}</span>
+                </div>
+                {% endfor %}
+                {% if not content_stats %}
+                <p style="color:var(--text-muted);text-align:center;padding:2rem">Sin artículos</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- SEO Rankings -->
+        <div class="card" style="margin-bottom:2rem">
+            <h3>🔍 SEO Rankings</h3>
+            {% if seo_latest %}
+            <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--border)">
+                        <th style="text-align:left;padding:0.75rem;color:var(--text-muted)">Keyword</th>
+                        <th style="text-align:left;padding:0.75rem;color:var(--text-muted)">Idioma</th>
+                        <th style="text-align:left;padding:0.75rem;color:var(--text-muted)">Posición</th>
+                        <th style="text-align:left;padding:0.75rem;color:var(--text-muted)">URL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in seo_latest %}
+                    <tr style="border-bottom:1px solid var(--border)">
+                        <td style="padding:0.75rem;font-weight:500">{{ r.keyword }}</td>
+                        <td style="padding:0.75rem">{{ r.language.upper() }}</td>
+                        <td style="padding:0.75rem">
+                            <span style="background:{{ 'rgba(34,197,94,0.15)' if r.position <= 10 else 'rgba(245,158,11,0.15)' }};padding:0.2rem 0.6rem;border-radius:100px;font-size:0.75rem">
+                                #{{ r.position }}
+                            </span>
+                        </td>
+                        <td style="padding:0.75rem;color:var(--text-muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.url or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color:var(--text-muted);text-align:center;padding:2rem">Sin rankings registrados</p>
+            {% endif %}
+        </div>
+
+        <!-- Charts -->
+        <div class="section-grid">
+            <div class="card">
+                <h3>📈 Visitantes (30 días)</h3>
+                <div class="chart-box"><canvas id="chartVisitors"></canvas></div>
+            </div>
+            <div class="card">
+                <h3>💰 Revenue (30 días)</h3>
+                <div class="chart-box"><canvas id="chartRevenue"></canvas></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    Chart.defaults.color = '#8b8fa3';
+    Chart.defaults.borderColor = '#2d3140';
+
+    async function loadCharts() {
+        const pid = '{{ project_id }}';
+
+        // Visitors chart
+        const analytics = await fetch(`/api/project/${pid}/analytics?days=30`).then(r => r.json()).catch(() => []);
+        if (analytics.length) {
+            new Chart(document.getElementById('chartVisitors').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: analytics.map(d => d.date).reverse(),
+                    datasets: [{
+                        data: analytics.map(d => d.visitors).reverse(),
+                        borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // Revenue chart
+        const revenue = await fetch(`/api/project/${pid}/revenue?days=30`).then(r => r.json()).catch(() => []);
+        if (revenue.length) {
+            new Chart(document.getElementById('chartRevenue').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: revenue.map(d => d.date).reverse(),
+                    datasets: [{
+                        data: revenue.map(d => d.revenue_mxn).reverse(),
+                        backgroundColor: 'rgba(34,197,94,0.6)', borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCharts);
+    </script>
+</body>
+</html>

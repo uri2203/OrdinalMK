@@ -1,6 +1,7 @@
 """
-Marketing Engine — Main Application (Flask Dashboard)
+OrdinalMK — Main Application (Flask Dashboard)
 Multi-project marketing automation dashboard with real-time charts.
+Part of the Ordinal ecosystem.
 """
 
 import os
@@ -294,7 +295,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
     
-    print(f"\n[*] Marketing Engine Dashboard")
+    print(f"\nOrdinalMK Dashboard")
     print(f"   http://localhost:{port}")
     print(f"   Projects: {', '.join(PROJECTS.keys())}")
     print(f"   Database: {get_db_path()}\n")

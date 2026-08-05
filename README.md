@@ -1,8 +1,8 @@
-# 🚀 Marketing Engine
+# OrdinalMK
 
 **Multi-project marketing automation engine with visual dashboard.**
 
-Motor de marketing automatizado multi-proyecto con dashboard visual, monitoreo SEO, automatización de emails, y reportes automatizados.
+Motor de marketing automatizado multi-proyecto con dashboard visual, monitoreo SEO, automatización de emails, y reportes automatizados. Parte del ecosistema Ordinal.
 
 ## Features
 

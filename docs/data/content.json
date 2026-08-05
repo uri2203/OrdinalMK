@@ -1,0 +1,21 @@
+{
+  "stats": {
+    "total": 10,
+    "by_status": {"published": 8, "draft": 2},
+    "by_language": {"es": 3, "en": 2, "pt": 1, "fr": 1, "de": 1},
+    "avg_word_count": 1960,
+    "avg_reading_time": 9.8
+  },
+  "articles": [
+    {"title": "Guia Completa del Ciclo Menstrual para Principiantes", "language": "es", "status": "published", "word_count": 2500, "reading_time_min": 12, "published_at": "2026-07-10"},
+    {"title": "Como Usar el Planner de Yayika para Organizar tu Vida", "language": "es", "status": "published", "word_count": 1800, "reading_time_min": 9, "published_at": "2026-07-12"},
+    {"title": "5 Beneficios de Trackear tu Ciclo Menstrual", "language": "es", "status": "published", "word_count": 1500, "reading_time_min": 7, "published_at": "2026-07-15"},
+    {"title": "Menstrual Cycle Tracking: A Complete Guide", "language": "en", "status": "published", "word_count": 2200, "reading_time_min": 11, "published_at": "2026-07-18"},
+    {"title": "Digital Products for Women: Why They Matter", "language": "en", "status": "published", "word_count": 1600, "reading_time_min": 8, "published_at": "2026-07-20"},
+    {"title": "Guia do Ciclo Menstrual para Iniciantes", "language": "pt", "status": "published", "word_count": 2000, "reading_time_min": 10, "published_at": "2026-07-22"},
+    {"title": "Guide Complet du Cycle Menstruel", "language": "fr", "status": "published", "word_count": 1900, "reading_time_min": 9, "published_at": "2026-07-25"},
+    {"title": "Kompletter Leitfaden fur den Menstruationszyklus", "language": "de", "status": "published", "word_count": 2100, "reading_time_min": 10, "published_at": "2026-07-28"},
+    {"title": "Planificador para Mujeres Emprendedoras: Tips y Tricks", "language": "es", "status": "draft", "word_count": 1200, "reading_time_min": 6},
+    {"title": "Community Building for Women: Best Practices", "language": "en", "status": "draft", "word_count": 900, "reading_time_min": 4}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "stats": {
+    "total_campaigns": 3,
+    "total_recipients": 24,
+    "total_opens": 18,
+    "total_clicks": 10,
+    "total_bounces": 1,
+    "open_rate": 75.0,
+    "click_rate": 41.7,
+    "bounce_rate": 4.2
+  },
+  "campaigns": [
+    {"name": "Welcome Series #1", "sequence": "welcome", "subject": "Bienvenida a Yayika!", "status": "sent", "recipient_count": 8, "open_count": 7, "click_count": 5, "sent_at": "2026-07-15"},
+    {"name": "Nurture Tips", "sequence": "nurture", "subject": "5 Tips para tu Ciclo", "status": "sent", "recipient_count": 8, "open_count": 6, "click_count": 3, "sent_at": "2026-07-20"},
+    {"name": "Upsell Plan Guerrera", "sequence": "upsell", "subject": "Desbloquea tu Potencial", "status": "sent", "recipient_count": 8, "open_count": 5, "click_count": 2, "sent_at": "2026-07-28"}
+  ],
+  "subscriber_growth": [
+    {"date": "2026-07-10", "count": 2},
+    {"date": "2026-07-15", "count": 3},
+    {"date": "2026-07-20", "count": 1},
+    {"date": "2026-07-25", "count": 1},
+    {"date": "2026-08-01", "count": 1}
+  ]
+}

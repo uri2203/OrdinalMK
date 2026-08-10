@@ -169,7 +169,13 @@ class MultiProjectOrchestrator:
         """Create multi-language landing pages with hreflang."""
         try:
             languages = config.get('languages', ['es', 'en'])
-            landing_gen = MultilangLandingPageGenerator(project_id, languages)
+            landing_gen = MultilangLandingPageGenerator(
+                project_id, languages,
+                domain=config.get('domain'),
+                brand=config.get('name'),
+                theme=config.get('theme'),
+                og_image=config.get('og_image'),
+            )
             
             created = 0
             
@@ -223,7 +229,7 @@ class MultiProjectOrchestrator:
         """Generate multi-language SEO assets with hreflang."""
         try:
             languages = config.get('languages', ['es', 'en'])
-            distributor = RegionalDistributor(project_id, languages)
+            distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             # Generate sitemaps per language
             sitemaps = distributor.generate_sitemap_per_language()
@@ -280,7 +286,7 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
         """Generate comprehensive distribution report."""
         try:
             languages = config.get('languages', ['es', 'en'])
-            distributor = RegionalDistributor(project_id, languages)
+            distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             report = distributor.get_region_report()
             

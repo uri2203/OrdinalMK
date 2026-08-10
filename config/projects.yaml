@@ -12,6 +12,11 @@ projects:
     name: Yayika
     domain: yayika.com
     github_repo: uri2203/yayika
+    og_image: "https://yayika.com/og-image.png"
+    theme:   # paleta de marca (usada por el generador de landings)
+      primary: "#6366f1"
+      primary_dark: "#4f46e5"
+      accent: "#8b5cf6"
     concept: "Plataforma para mujeres emprendedoras"
     tagline: "Transforma tu vida con Yayika"
     audience:
@@ -139,6 +144,11 @@ projects:
     name: LastMile Platform
     domain: lastmile-platform.com
     github_repo: uri2203/lastmile-platform
+    og_image: "https://lastmile-platform.com/og-image.png"
+    theme:
+      primary: "#0ea5e9"
+      primary_dark: "#0284c7"
+      accent: "#22d3ee"
     concept: "Plataforma de delivery y logística de última milla"
     tagline: "Optimiza tu delivery con LastMile"
     audience:
@@ -219,6 +229,16 @@ projects:
     name: TuIAlista
     domain: tuialista.com
     github_repo: uri2203/tuialista-site
+    og_image: "https://tuialista.com/assets/img/icon-512.png"
+    theme:   # tema claro, marca naranja (coincide con tuialista.com)
+      primary: "#e8821e"
+      primary_dark: "#c46a12"
+      accent: "#e8821e"
+      bg: "#f5f6f4"
+      surface: "#ffffff"
+      line: "#d4d8d2"
+      muted: "#5a6b73"
+      text: "#0f1922"
     concept: "Servicio de IA personalizado para profesionales y empresas"
     tagline: "Tu asistente IA, a tu medida"
     audience:

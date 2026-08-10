@@ -18,7 +18,7 @@ from config.database import init_db, get_connection
 from config.projects import load_config, get_all_project_ids
 from content.engine import ContentEngine
 from seo.monitor import SEOMonitor
-from email.automation import EmailAutomation
+from mailer.automation import EmailAutomation
 from analytics.tracker import AnalyticsTracker
 from reports.generator import ReportGenerator
 

@@ -180,7 +180,11 @@ class MultiProjectOrchestrator:
             created = 0
             
             # Generate main landing in all languages
-            concept = config.get('concept', {})
+            # El contenido de la landing viene del bloque `landing:` por idioma en
+            # projects.yaml. `concept` puede ser un string (descripción corta), no
+            # sirve como contenido multi-idioma; por eso NO se usa aquí.
+            _landing = config.get('landing')
+            concept = _landing if isinstance(_landing, dict) else {}
             pricing = config.get('pricing', {})
             testimonials = config.get('testimonials', [])
             

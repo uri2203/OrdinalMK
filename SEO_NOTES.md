@@ -39,11 +39,15 @@ Esta rama endurece el SEO del motor y lo deja **multi-proyecto de verdad**
    de deploy debe **empujar `published/<proyecto>/` al repo/dominio de la marca**
    (p. ej. `uri2203/tuialista-site`) para que Google indexe en `tuialista.com`.
    Mientras no se haga, el SEO de estas landings **no cuenta para la marca**.
-2. **Esquema de contenido.** El generador multilang espera
-   `content = {lang: {title, subtitle, description, cta_text, cta_link, features…}}`,
-   pero `projects.yaml` define `concept` como string. Hay que estructurar el
-   contenido por idioma (o adaptarlo en el orquestador) para que se generen las
-   landings — hoy los sitemaps salen vacíos por esto.
+2. **Esquema de contenido — RESUELTO para tuialista.** El generador multilang
+   espera `content = {lang: {title, subtitle, description, cta_text, cta_link,
+   features…}}`. Se añadió un bloque **`landing:` por idioma** en `projects.yaml`
+   y el orquestador lo usa. Además se corrigió un bug de ruta en
+   `multilang_landing.py` (`PUBLISHED_DIR` subía un nivel de más → escribía fuera
+   del repo → sitemaps vacíos). **tuialista (es/en) ya genera landings reales con
+   canonical, hreflang válido, OG/Twitter, tema de marca y sitemaps con URLs**
+   (validado en local). **Falta añadir el bloque `landing:` a yayika y lastmile**
+   (mismo formato) para que también generen.
 3. **Dashboard interno.** `robots.txt`/`noindex` evitan el indexado, pero los
    JSON siguen siendo accesibles por URL. Lo ideal: **no** servir el dashboard de
    ingresos en Pages público (moverlo a un host privado / detrás de auth).

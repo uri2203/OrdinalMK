@@ -9,7 +9,7 @@ from pathlib import Path
 from .regional import RegionalDistributor, REGIONS
 
 
-PUBLISHED_DIR = Path(__file__).parent.parent.parent.parent / "published"
+PUBLISHED_DIR = Path(__file__).parent.parent.parent / "published"
 
 
 class MultilangLandingPageGenerator:

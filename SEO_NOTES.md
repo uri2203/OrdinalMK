@@ -33,12 +33,18 @@ Esta rama endurece el SEO del motor y lo deja **multi-proyecto de verdad**
 
 ## ⚠️ Pendiente (decisiones / trabajo mayor — no incluido aquí)
 
-1. **Publicar en el dominio de marca.** Hoy el workflow solo commitea a `docs/`
-   de OrdinalMK → las landings quedan en `github.io/OrdinalMK/…`, **huérfanas y
-   fuera del dominio**. Cada proyecto ya tiene `github_repo` en config: el paso
-   de deploy debe **empujar `published/<proyecto>/` al repo/dominio de la marca**
-   (p. ej. `uri2203/tuialista-site`) para que Google indexe en `tuialista.com`.
-   Mientras no se haga, el SEO de estas landings **no cuenta para la marca**.
+1. **Publicar en el dominio de marca — CONSTRUIDO (falta activarlo).** El paso
+   `_deploy` ahora **publica las landings en el repo `github_repo` de cada marca**,
+   bajo `/lp/` (p. ej. `tuialista.com/lp/es/`), con un `lp/sitemap.xml` propio y
+   una línea `Sitemap:` añadida al `robots.txt` — **sin tocar páginas existentes
+   ni el sitemap principal**. Validado en **dry-run** contra `uri2203/tuialista-site`
+   (agrega `lp/es/index.html`, `lp/en/index.html`, `lp/sitemap.xml`; modifica solo
+   `robots.txt`).
+   **Para activarlo:** (a) crear un **PAT** con escritura a los repos de marca y
+   guardarlo como secret **`GH_PAT`** en OrdinalMK (ya cableado en el workflow como
+   `GH_TOKEN`); (b) confirmar `pages_root` por proyecto (tuialista-site sirve desde
+   la **raíz** → `""`; verificar si yayika/lastmile sirven desde `docs/`).
+   Prueba manual sin publicar: `ORDINALMK_DRY_RUN=1 python engine/multi_orchestrator.py run-project -p tuialista`.
 2. **Esquema de contenido — RESUELTO para tuialista.** El generador multilang
    espera `content = {lang: {title, subtitle, description, cta_text, cta_link,
    features…}}`. Se añadió un bloque **`landing:` por idioma** en `projects.yaml`

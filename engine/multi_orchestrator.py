@@ -337,7 +337,16 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
                 return {'status': 'skipped', 'message': 'sin github_repo/domain'}
 
             published_dir = Path(__file__).parent.parent / "published" / project_id
-            landings = sorted(p for p in published_dir.rglob('*.html')) if published_dir.exists() else []
+            # Solo las landings por idioma (published/<p>/<lang>/*.html), no las
+            # de subcarpetas antiguas como landing/ (generador legacy, SEO débil).
+            languages = config.get('languages') or []
+            landings = []
+            if published_dir.exists():
+                if languages:
+                    for _lg in languages:
+                        landings += sorted((published_dir / _lg).glob('*.html'))
+                else:
+                    landings = sorted(p for p in published_dir.rglob('*.html'))
             if not landings:
                 return {'status': 'skipped', 'message': 'no hay landings que publicar'}
 

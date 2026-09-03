@@ -12,7 +12,7 @@ from typing import Optional
 
 from config.database import get_connection
 from analytics.tracker import AnalyticsTracker
-from email.automation import EmailAutomation
+from mailer.automation import EmailAutomation
 from seo.monitor import SEOMonitor
 from content.engine import ContentEngine
 

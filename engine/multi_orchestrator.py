@@ -113,11 +113,11 @@ class MultiProjectOrchestrator:
     def _generate_content(self, project_id: str, config: dict) -> dict:
         """Generate content for a project."""
         try:
-            publisher = ContentPublisher(project_id)
-            
-            # Override topics from config
-            publisher.topics = config.get('content', {}).get('topics', {})
-            
+            # El publisher recibe TODA la config del proyecto: así usa la marca,
+            # el dominio, la audiencia, el tono y las keywords correctos (y no
+            # queda cableado a una sola marca).
+            publisher = ContentPublisher(project_id, config)
+
             # Generate calendar
             calendar = publisher.get_content_calendar(7)
             
@@ -169,12 +169,22 @@ class MultiProjectOrchestrator:
         """Create multi-language landing pages with hreflang."""
         try:
             languages = config.get('languages', ['es', 'en'])
-            landing_gen = MultilangLandingPageGenerator(project_id, languages)
+            landing_gen = MultilangLandingPageGenerator(
+                project_id, languages,
+                domain=config.get('domain'),
+                brand=config.get('name'),
+                theme=config.get('theme'),
+                og_image=config.get('og_image'),
+            )
             
             created = 0
             
             # Generate main landing in all languages
-            concept = config.get('concept', {})
+            # El contenido de la landing viene del bloque `landing:` por idioma en
+            # projects.yaml. `concept` puede ser un string (descripción corta), no
+            # sirve como contenido multi-idioma; por eso NO se usa aquí.
+            _landing = config.get('landing')
+            concept = _landing if isinstance(_landing, dict) else {}
             pricing = config.get('pricing', {})
             testimonials = config.get('testimonials', [])
             
@@ -223,7 +233,7 @@ class MultiProjectOrchestrator:
         """Generate multi-language SEO assets with hreflang."""
         try:
             languages = config.get('languages', ['es', 'en'])
-            distributor = RegionalDistributor(project_id, languages)
+            distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             # Generate sitemaps per language
             sitemaps = distributor.generate_sitemap_per_language()
@@ -280,7 +290,7 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
         """Generate comprehensive distribution report."""
         try:
             languages = config.get('languages', ['es', 'en'])
-            distributor = RegionalDistributor(project_id, languages)
+            distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             report = distributor.get_region_report()
             
@@ -300,34 +310,112 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
             return {'status': 'error', 'message': str(e)}
     
     def _deploy(self, project_id: str, config: dict) -> dict:
-        """Deploy content to GitHub Pages."""
+        """Publica las landings en el repo/dominio de CADA marca, bajo /lp/.
+
+        Cada proyecto se sirve en su propio dominio (tuialista.com, yayika.com, …)
+        desde su propio repo (`github_repo`). Este paso clona ese repo, copia las
+        landings bajo un subpath dedicado (`lp/` por defecto), escribe un sitemap
+        propio en `lp/sitemap.xml` y referencia ese sitemap en `robots.txt`
+        (append, sin pisar nada). NO toca páginas existentes ni el sitemap
+        principal del sitio.
+
+        Requiere un token con acceso de escritura a los repos de marca en la env
+        `GH_TOKEN` (o `GITHUB_TOKEN`). Con `ORDINALMK_DRY_RUN=1` hace todo menos
+        el commit/push (para validar sin publicar).
+        """
+        import os, tempfile, subprocess, shutil
         try:
             deploy_config = config.get('deploy', {})
-            repo = deploy_config.get('repo', '')
+            repo = config.get('github_repo') or deploy_config.get('repo', '')
             branch = deploy_config.get('branch', 'main')
-            
-            if not repo:
-                return {'status': 'skipped', 'message': 'No repo configured'}
-            
-            # Copy published content to docs/ for GitHub Pages
+            pages_root = deploy_config.get('pages_root', config.get('pages_root', ''))  # '' = raíz del repo
+            lp_path = (deploy_config.get('lp_path', 'lp')).strip('/')
+            domain = (config.get('domain') or '').strip('/')
+            dry = os.getenv('ORDINALMK_DRY_RUN') == '1'
+
+            if not repo or not domain:
+                return {'status': 'skipped', 'message': 'sin github_repo/domain'}
+
             published_dir = Path(__file__).parent.parent / "published" / project_id
-            docs_dir = Path(__file__).parent.parent / "docs" / "projects" / project_id
-            
+            # Solo las landings por idioma (published/<p>/<lang>/*.html), no las
+            # de subcarpetas antiguas como landing/ (generador legacy, SEO débil).
+            languages = config.get('languages') or []
+            landings = []
             if published_dir.exists():
-                import shutil
-                docs_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Copy content
-                for item in published_dir.rglob('*'):
-                    if item.is_file():
-                        rel = item.relative_to(published_dir)
-                        dest = docs_dir / rel
-                        dest.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(item, dest)
-                
-                print(f"    Copied to docs/projects/{project_id}/")
-            
-            return {'status': 'ok', 'repo': repo, 'branch': branch}
+                if languages:
+                    for _lg in languages:
+                        landings += sorted((published_dir / _lg).glob('*.html'))
+                else:
+                    landings = sorted(p for p in published_dir.rglob('*.html'))
+            if not landings:
+                return {'status': 'skipped', 'message': 'no hay landings que publicar'}
+
+            token = os.getenv('GH_TOKEN') or os.getenv('GITHUB_TOKEN', '')
+            if not token and not dry:
+                return {'status': 'skipped', 'message': 'falta GH_TOKEN con acceso al repo de marca'}
+            auth_url = (f"https://x-access-token:{token}@github.com/{repo}.git"
+                        if token else f"https://github.com/{repo}.git")
+
+            tmp = Path(tempfile.mkdtemp(prefix='ordinalmk_'))
+            try:
+                subprocess.run(['git', 'clone', '--depth', '1', '--branch', branch, auth_url, str(tmp)],
+                               check=True, capture_output=True)
+                root = (tmp / pages_root) if pages_root else tmp
+                lp_dir = root / lp_path
+
+                # 1) Copiar landings: published/<p>/<lang>/<slug>.html -> <root>/lp/<lang>/<slug>.html
+                url_entries = []
+                for f in landings:
+                    lang = f.parent.name
+                    dest = lp_dir / lang / f.name
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(f, dest)
+                    slug = f.stem
+                    loc = (f"https://{domain}/{lp_path}/{lang}/"
+                           if slug == 'index' else f"https://{domain}/{lp_path}/{lang}/{slug}")
+                    url_entries.append(f"  <url><loc>{loc}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>")
+
+                # 2) Sitemap propio de /lp/ (no toca el sitemap principal del sitio)
+                lp_dir.mkdir(parents=True, exist_ok=True)
+                sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+                           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                           + "\n".join(url_entries) + "\n</urlset>\n")
+                (lp_dir / 'sitemap.xml').write_text(sitemap, encoding='utf-8')
+
+                # 3) robots.txt: referenciar el sitemap de /lp/ (append, sin pisar)
+                robots = root / 'robots.txt'
+                sm_line = f"Sitemap: https://{domain}/{lp_path}/sitemap.xml"
+                if robots.exists():
+                    txt = robots.read_text(encoding='utf-8')
+                    if sm_line not in txt:
+                        robots.write_text(txt.rstrip() + "\n" + sm_line + "\n", encoding='utf-8')
+                else:
+                    robots.write_text(f"User-agent: *\nAllow: /\n\n{sm_line}\n", encoding='utf-8')
+
+                if dry:
+                    diff = subprocess.run(['git', '-C', str(tmp), 'add', '-A'], capture_output=True)
+                    st = subprocess.run(['git', '-C', str(tmp), 'status', '--short'], capture_output=True, text=True)
+                    print(f"    [DRY-RUN] {repo}: se publicarían {len(landings)} landings en /{lp_path}/")
+                    print("    " + st.stdout.replace("\n", "\n    ").strip())
+                    return {'status': 'dry-run', 'repo': repo, 'landings': len(landings),
+                            'url': f"https://{domain}/{lp_path}/"}
+
+                subprocess.run(['git', '-C', str(tmp), 'add', '-A'], check=True, capture_output=True)
+                staged = subprocess.run(['git', '-C', str(tmp), 'diff', '--staged', '--quiet'])
+                if staged.returncode != 0:
+                    subprocess.run(['git', '-C', str(tmp),
+                                    '-c', 'user.name=OrdinalMK Bot', '-c', 'user.email=bot@ordinalmk.dev',
+                                    'commit', '-m', f'marketing(lp): landings de {project_id}'],
+                                   check=True, capture_output=True)
+                    subprocess.run(['git', '-C', str(tmp), 'push', 'origin', branch], check=True, capture_output=True)
+                    print(f"    Publicado en {repo} -> https://{domain}/{lp_path}/ ({len(landings)} landings)")
+                else:
+                    print(f"    {repo}: sin cambios (ya al día)")
+                return {'status': 'ok', 'repo': repo, 'url': f"https://{domain}/{lp_path}/", 'landings': len(landings)}
+            finally:
+                shutil.rmtree(tmp, ignore_errors=True)
+        except subprocess.CalledProcessError as e:
+            return {'status': 'error', 'message': f"git: {(e.stderr or b'').decode('utf-8', 'ignore')[:200]}"}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}

@@ -82,10 +82,20 @@ REGIONS = {
 class RegionalDistributor:
     """Handles multi-language content distribution."""
     
-    def __init__(self, project_id: str, languages: list):
+    def __init__(self, project_id: str, languages: list, domain: str = None):
         self.project_id = project_id
         self.languages = languages
+        # El dominio SIEMPRE debe venir de la config del proyecto (multi-proyecto).
+        # Fallback a "{project_id}.com" solo por compatibilidad; NO asumir para
+        # dominios como lastmile-platform.com.
+        self.domain = (domain or f"{project_id}.com").replace("https://", "").replace("http://", "").strip("/")
+        self.base_url = f"https://{self.domain}"
         self.published_dir = PUBLISHED_DIR / project_id
+
+    @staticmethod
+    def _hreflang(locale: str) -> str:
+        """Código hreflang válido para Google: guion, no guion bajo (es-ES, no es_ES)."""
+        return locale.replace("_", "-")
     
     # ──────────────────────────────────────────────
     # SEO: HREFLANG + SITEMAPS
@@ -94,17 +104,17 @@ class RegionalDistributor:
     def generate_hreflang_tags(self, slug: str, title: str, description: str) -> str:
         """Generate hreflang tags for a multi-language page."""
         tags = []
-        base_url = f"https://{self.project_id}.com"
-        
+        base_url = self.base_url
+
         for lang in self.languages:
             region = REGIONS.get(lang, {})
             locale = region.get('locales', [f'{lang}'])[0]
-            
-            tags.append(f'<link rel="alternate" hreflang="{locale}" href="{base_url}/{lang}/{slug}" />')
-        
+            # hreflang usa el CÓDIGO DE IDIOMA (o idioma-región con guion), no el locale con "_".
+            tags.append(f'<link rel="alternate" hreflang="{lang}" href="{base_url}/{lang}/{slug}" />')
+
         # x-default (fallback)
         tags.append(f'<link rel="alternate" hreflang="x-default" href="{base_url}/{self.languages[0]}/{slug}" />')
-        
+
         return '\n'.join(tags)
     
     def generate_sitemap_per_language(self) -> dict:
@@ -118,10 +128,11 @@ class RegionalDistributor:
             if pages_dir.exists():
                 for page_file in pages_dir.rglob('*.html'):
                     slug = page_file.stem
+                    priority = '1.0' if slug in ('index', '') else '0.8'
                     urls.append(f"""  <url>
-    <loc>https://{self.project_id}.com/{lang}/{slug}</loc>
+    <loc>{self.base_url}/{lang}/{slug}</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>{priority}</priority>
   </url>""")
             
             sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -142,7 +153,7 @@ class RegionalDistributor:
         # Generate sitemap index
         index = f"""<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{''.join(f'<sitemap><loc>https://{self.project_id}.com/sitemap_{lang}.xml</loc></sitemap>' for lang in self.languages)}
+{''.join(f'<sitemap><loc>{self.base_url}/sitemap_{lang}.xml</loc></sitemap>' for lang in self.languages)}
 </sitemapindex>"""
         
         index_path = self.published_dir / "sitemap_index.xml"
@@ -295,8 +306,9 @@ class RegionalDistributor:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{lang_content.get('title', '')} — {self.project_id.title()}</title>
     <meta name="description" content="{lang_content.get('description', '')}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{self.base_url}/{lang}/{slug}">
     {self.generate_hreflang_tags(slug, lang_content.get('title', ''), lang_content.get('description', ''))}
-    <link rel="alternate" hreflang="{REGIONS[lang]['locales'][0]}" href="https://{self.project_id}.com/{lang}/{slug}">
 </head>
 <body>
     <h1>{lang_content.get('title', '')}</h1>

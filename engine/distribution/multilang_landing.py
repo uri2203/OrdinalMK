@@ -9,16 +9,23 @@ from pathlib import Path
 from .regional import RegionalDistributor, REGIONS
 
 
-PUBLISHED_DIR = Path(__file__).parent.parent.parent.parent / "published"
+PUBLISHED_DIR = Path(__file__).parent.parent.parent / "published"
 
 
 class MultilangLandingPageGenerator:
     """Generate landing pages with multi-language support and region detection."""
     
-    def __init__(self, project_id: str, languages: list):
+    def __init__(self, project_id: str, languages: list, domain: str = None,
+                 brand: str = None, theme: dict = None, og_image: str = None):
         self.project_id = project_id
         self.languages = languages
-        self.distributor = RegionalDistributor(project_id, languages)
+        self.domain = (domain or f"{project_id}.com").replace("https://", "").replace("http://", "").strip("/")
+        self.base_url = f"https://{self.domain}"
+        self.brand = brand or project_id.title()
+        self.theme = theme or {}
+        self.og_image = og_image or f"{self.base_url}/og-image.png"
+        # El distribuidor debe conocer el dominio real (multi-proyecto)
+        self.distributor = RegionalDistributor(project_id, languages, domain=self.domain)
     
     def generate_multilang_landing(self, slug: str, content: dict, 
                                     pricing: dict = None, 
@@ -29,6 +36,17 @@ class MultilangLandingPageGenerator:
         for lang in self.languages:
             region = REGIONS.get(lang, {})
             lang_content = content.get(lang, content.get(self.languages[0], {}))
+            # ── SEO por idioma (canonical, marca, OG) ──
+            _title = lang_content.get('title', self.brand)
+            _desc = lang_content.get('description', '')
+            _canonical = f"{self.base_url}/{lang}/{slug}"
+            _og_locale = region.get('locales', [lang])[0]
+            # Enlaces de idioma del footer (absolutos; se calcula fuera del f-string
+            # para evitar el bug de llaves anidadas).
+            _lang_links = ''.join(
+                f'<a href="{self.base_url}/{l}/{slug}" style="margin: 0 8px; color: #6366f1;">'
+                f'{REGIONS.get(l, {}).get("name", l)}</a>' for l in self.languages)
+            _year = datetime.now().year
             
             # Localized pricing
             local_pricing = {}
@@ -57,30 +75,42 @@ class MultilangLandingPageGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{lang_content.get('title', self.project_id.title())}</title>
-    <meta name="description" content="{lang_content.get('description', '')}">
+    <title>{_title}</title>
+    <meta name="description" content="{_desc}">
     <meta name="keywords" content="{lang_content.get('keywords', '')}">
-    
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{_canonical}">
+
     <!-- hreflang for multi-language SEO -->
-    {self.distributor.generate_hreflang_tags(slug, lang_content.get('title', ''), lang_content.get('description', ''))}
-    
+    {self.distributor.generate_hreflang_tags(slug, _title, _desc)}
+
     <!-- Open Graph -->
-    <meta property="og:title" content="{lang_content.get('title', '')}">
-    <meta property="og:description" content="{lang_content.get('description', '')}">
-    <meta property="og:locale" content="{region.get('locales', [lang])[0]}">
-    <meta property="og:locale:alternate" content="en_US">
-    
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{self.brand}">
+    <meta property="og:title" content="{_title}">
+    <meta property="og:description" content="{_desc}">
+    <meta property="og:url" content="{_canonical}">
+    <meta property="og:image" content="{self.og_image}">
+    <meta property="og:locale" content="{_og_locale}">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{_title}">
+    <meta name="twitter:description" content="{_desc}">
+    <meta name="twitter:image" content="{self.og_image}">
+
     <!-- Schema.org -->
     <script type="application/ld+json">
     {{
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "{lang_content.get('title', '')}",
-        "description": "{lang_content.get('description', '')}",
+        "name": "{_title}",
+        "description": "{_desc}",
+        "url": "{_canonical}",
         "inLanguage": "{lang}",
         "publisher": {{
             "@type": "Organization",
-            "name": "{self.project_id.title()}"
+            "name": "{self.brand}"
         }}
     }}
     </script>
@@ -207,9 +237,9 @@ class MultilangLandingPageGenerator:
     
     <!-- Footer -->
     <footer>
-        <p>{lang_content.get('footer_text', f'© 2024 {self.project_id.title()}. All rights reserved.')}</p>
+        <p>{lang_content.get('footer_text', f'© {_year} {self.brand}. All rights reserved.')}</p>
         <div style="margin-top: 16px;">
-            {''.join(f'<a href="/{l}/{slug}" style="margin: 0 8px; color: #6366f1;">{REGIONS.get(l, {{}}).get("name", l)}</a>' for l in self.languages)}
+            {_lang_links}
         </div>
     </footer>
     
@@ -218,6 +248,20 @@ class MultilangLandingPageGenerator:
 </body>
 </html>"""
             
+            # Tema por marca (multi-proyecto): reemplaza la paleta por defecto
+            # por la definida en projects.yaml (theme:). Sin theme, se conserva.
+            for _k, _v in {
+                '#6366f1': self.theme.get('primary', '#6366f1'),
+                '#5558e6': self.theme.get('primary_dark', self.theme.get('primary', '#5558e6')),
+                '#0f1117': self.theme.get('bg', '#0f1117'),
+                '#1a1d27': self.theme.get('surface', '#1a1d27'),
+                '#2d3140': self.theme.get('line', '#2d3140'),
+                '#8b8fa3': self.theme.get('muted', '#8b8fa3'),
+                '#e4e6f0': self.theme.get('text', '#e4e6f0'),
+            }.items():
+                if _v != _k:
+                    html = html.replace(_k, _v)
+
             # Save
             output_dir = PUBLISHED_DIR / self.project_id / lang
             output_dir.mkdir(parents=True, exist_ok=True)

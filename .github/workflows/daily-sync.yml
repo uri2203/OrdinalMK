@@ -40,6 +40,11 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Token (PAT) con acceso de ESCRITURA a los repos de marca
+          # (uri2203/tuialista-site, uri2203/yayika, …). Necesario para publicar
+          # las landings bajo /lp/ en cada dominio. Sin él, el paso de deploy se
+          # salta (no falla). Define ORDINALMK_DRY_RUN=1 para validar sin publicar.
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           if [ -n "${{ github.event.inputs.project }}" ]; then
             python engine/multi_orchestrator.py run-project -p ${{ github.event.inputs.project }}

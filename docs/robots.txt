@@ -1,0 +1,11 @@
+# OrdinalMK — GitHub Pages (uri2203.github.io/OrdinalMK)
+# El dashboard y los datos internos NO deben indexarse.
+User-agent: *
+Disallow: /data/
+Disallow: /static-dashboard/
+Disallow: /index.html
+Allow: /projects/
+
+# Nota: robots.txt evita el indexado, pero NO hace privados los JSON.
+# El dashboard interno (con métricas de ingresos) no debería servirse en
+# GitHub Pages público — ver SEO_NOTES.md.

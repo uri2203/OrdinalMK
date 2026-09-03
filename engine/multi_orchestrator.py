@@ -113,11 +113,11 @@ class MultiProjectOrchestrator:
     def _generate_content(self, project_id: str, config: dict) -> dict:
         """Generate content for a project."""
         try:
-            publisher = ContentPublisher(project_id)
-            
-            # Override topics from config
-            publisher.topics = config.get('content', {}).get('topics', {})
-            
+            # El publisher recibe TODA la config del proyecto: así usa la marca,
+            # el dominio, la audiencia, el tono y las keywords correctos (y no
+            # queda cableado a una sola marca).
+            publisher = ContentPublisher(project_id, config)
+
             # Generate calendar
             calendar = publisher.get_content_calendar(7)
             

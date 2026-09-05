@@ -386,6 +386,54 @@ projects:
             description: "Documents, Excel, databases, invoices, tax, payroll, contracts and more."
           - title: "7-day trial"
             description: "Start free and cancel anytime from your portal."
+      pt:
+        title: "TuIAlista — Agentes de IA que rodam no seu computador"
+        subtitle: "IA local para o seu negócio: automatize documentos, Excel, notas fiscais e mais sem que seus dados saiam do seu computador."
+        description: "Agentes de IA locais para documentos, Excel, banco de dados, notas fiscais e fiscal. Seus arquivos nunca saem do seu equipamento. Teste 7 dias grátis, cancele quando quiser."
+        keywords: "agentes de IA, IA local, automação, notas fiscais, fiscal, Excel, privacidade de dados"
+        cta_text: "Ver catálogo de agentes"
+        cta_link: "https://tuialista.com/catalogo/"
+        features_title: "Por que TuIAlista"
+        footer_text: "© TuIAlista · tuialista.com"
+        features:
+          - title: "100% local e privado"
+            description: "Os agentes processam seus arquivos no seu próprio computador. Seus dados não são enviados para a nuvem."
+          - title: "Catálogo de 16 agentes"
+            description: "Documentos, Excel, banco de dados, notas fiscais, fiscal, folha de pagamento, contratos e mais."
+          - title: "Teste de 7 dias"
+            description: "Comece grátis e cancele quando quiser no seu portal."
+      fr:
+        title: "TuIAlista — Des agents d'IA qui tournent sur votre ordinateur"
+        subtitle: "L'IA locale pour votre entreprise : automatisez documents, Excel, factures et plus sans que vos données quittent votre ordinateur."
+        description: "Des agents d'IA locaux pour documents, Excel, bases de données, factures et fiscalité. Vos fichiers ne quittent jamais votre appareil. Essai gratuit de 7 jours, annulez quand vous voulez."
+        keywords: "agents d'IA, IA locale, automatisation, factures, fiscalité, Excel, confidentialité des données"
+        cta_text: "Voir le catalogue d'agents"
+        cta_link: "https://tuialista.com/catalogo/"
+        features_title: "Pourquoi TuIAlista"
+        footer_text: "© TuIAlista · tuialista.com"
+        features:
+          - title: "100% local et privé"
+            description: "Les agents traitent vos fichiers sur votre propre machine. Vos données ne sont pas envoyées dans le cloud."
+          - title: "Catalogue de 16 agents"
+            description: "Documents, Excel, bases de données, factures, fiscalité, paie, contrats et plus."
+          - title: "Essai de 7 jours"
+            description: "Commencez gratuitement et annulez quand vous voulez depuis votre portail."
+      de:
+        title: "TuIAlista — KI-Agenten, die auf deinem Rechner laufen"
+        subtitle: "Lokale KI für dein Business: automatisiere Dokumente, Excel, Rechnungen und mehr, ohne dass deine Daten deinen Computer verlassen."
+        description: "Lokale KI-Agenten für Dokumente, Excel, Datenbanken, Rechnungen und Steuern. Deine Dateien verlassen nie dein Gerät. 7 Tage kostenlos testen, jederzeit kündbar."
+        keywords: "KI-Agenten, lokale KI, Automatisierung, Rechnungen, Steuern, Excel, Datenschutz"
+        cta_text: "Agenten-Katalog ansehen"
+        cta_link: "https://tuialista.com/catalogo/"
+        features_title: "Warum TuIAlista"
+        footer_text: "© TuIAlista · tuialista.com"
+        features:
+          - title: "100% lokal & privat"
+            description: "Die Agenten verarbeiten deine Dateien auf deinem eigenen Rechner. Deine Daten werden nicht in die Cloud gesendet."
+          - title: "Katalog mit 16 Agenten"
+            description: "Dokumente, Excel, Datenbanken, Rechnungen, Steuern, Lohn, Verträge und mehr."
+          - title: "7-Tage-Test"
+            description: "Starte kostenlos und kündige jederzeit über dein Portal."
     concept: "Servicio de IA personalizado para profesionales y empresas"
     tagline: "Tu asistente IA, a tu medida"
     audience:
@@ -398,10 +446,10 @@ projects:
         - "Falta de tiempo para implementar IA"
         - "No tienen equipo técnico de IA"
     
-    languages: [es, en]
+    languages: [es, en, pt, fr, de]
     primary_language: es
     timezone: America/Mexico_City
-    
+
     content:
       topics:
         es:
@@ -419,6 +467,24 @@ projects:
           - "Complete guide: AI assistants for your company"
           - "Generative AI: how to maximize it"
           - "Automate your business with AI tools"
+        pt:
+          - "Como implementar IA no seu negócio em 2026"
+          - "5 casos de uso de IA para empreendedores"
+          - "Guia completo: assistentes de IA para sua empresa"
+          - "IA generativa: como aproveitá-la ao máximo"
+          - "Automatize seu negócio com ferramentas de IA"
+        fr:
+          - "Comment mettre en place l'IA dans votre entreprise en 2026"
+          - "5 cas d'usage de l'IA pour les entrepreneurs"
+          - "Guide complet : assistants IA pour votre entreprise"
+          - "IA générative : comment en tirer le meilleur parti"
+          - "Automatisez votre entreprise avec des outils d'IA"
+        de:
+          - "Wie du KI 2026 in deinem Unternehmen einführst"
+          - "5 KI-Anwendungsfälle für Unternehmer"
+          - "Kompletter Leitfaden: KI-Assistenten für dein Unternehmen"
+          - "Generative KI: so nutzt du sie optimal"
+          - "Automatisiere dein Business mit KI-Tools"
       tone: "Moderno, innovador, accesible"
       style: "Educativo con ejemplos prácticos"
       cta: "Prueba gratis"

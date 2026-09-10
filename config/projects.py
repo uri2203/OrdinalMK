@@ -61,3 +61,34 @@ def get_all_project_ids() -> list:
     """Get list of all project IDs."""
     config = load_config()
     return list(config.get('projects', {}).keys())
+
+
+def active_languages(project_config: dict) -> list:
+    """Idiomas que el motor debe generar/publicar AHORA para un proyecto.
+
+    Permite el lanzamiento por fases: un proyecto declara todos los idiomas que
+    soporta en `languages:` y, opcionalmente, cuáles están activos hoy en
+    `active_languages:`. El motor solo trabaja los activos; los demás se integran
+    después cambiando esa lista (o quitándola para activar todos).
+
+    Reglas:
+      - Sin `active_languages` → todos los `languages` (compatibilidad hacia atrás).
+      - Con `active_languages` → intersección con `languages`, respetando el orden
+        de `languages`.
+      - Si la intersección queda vacía → cae al `primary_language` (o al primero
+        de `languages`) para no dejar el proyecto sin idioma.
+      - El `primary_language` siempre se considera activo aunque se omita.
+    """
+    supported = project_config.get('languages') or ['es', 'en']
+    primary = project_config.get('primary_language') or (supported[0] if supported else 'es')
+
+    rollout = project_config.get('active_languages')
+    if not rollout:
+        return list(supported)
+
+    rollout_set = set(rollout)
+    rollout_set.add(primary)  # el primario nunca se desactiva
+    active = [lang for lang in supported if lang in rollout_set]
+    if not active:
+        active = [primary] if primary in supported else list(supported[:1])
+    return active

@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml
+from config.projects import active_languages
 from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
@@ -79,7 +80,7 @@ class MultiProjectOrchestrator:
             'tasks': {}
         }
         
-        languages = config.get('languages', ['es', 'en'])
+        languages = active_languages(config)
         
         # 1. Content
         print(f"\n  [1/6] Generating content...")
@@ -168,7 +169,7 @@ class MultiProjectOrchestrator:
     def _create_multilang_landing(self, project_id: str, config: dict) -> dict:
         """Create multi-language landing pages with hreflang."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             landing_gen = MultilangLandingPageGenerator(
                 project_id, languages,
                 domain=config.get('domain'),
@@ -232,7 +233,7 @@ class MultiProjectOrchestrator:
     def _optimize_seo_multilang(self, project_id: str, config: dict) -> dict:
         """Generate multi-language SEO assets with hreflang."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             # Generate sitemaps per language
@@ -265,7 +266,7 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
     def _setup_email_segmentation(self, project_id: str, config: dict) -> dict:
         """Set up email segmentation by language."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             email_engine = EmailSegmentation(project_id, languages)
             
             # Generate segmentation report
@@ -289,7 +290,7 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
     def _generate_distribution_report(self, project_id: str, config: dict) -> dict:
         """Generate comprehensive distribution report."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             report = distributor.get_region_report()
@@ -339,7 +340,8 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
             published_dir = Path(__file__).parent.parent / "published" / project_id
             # Solo las landings por idioma (published/<p>/<lang>/*.html), no las
             # de subcarpetas antiguas como landing/ (generador legacy, SEO débil).
-            languages = config.get('languages') or []
+            # Solo publica los idiomas ACTIVOS (lanzamiento por fases).
+            languages = active_languages(config)
             landings = []
             if published_dir.exists():
                 if languages:

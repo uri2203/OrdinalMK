@@ -1,6 +1,13 @@
 # ═══════════════════════════════════════════════════════
 # OrdinalMK — Multi-Project Configuration
 # Each project defines its own identity, content, and channels
+#
+# LANZAMIENTO POR FASES (idiomas):
+#   - `languages:` = todos los idiomas que el proyecto SOPORTA.
+#   - `active_languages:` (opcional) = subconjunto que el motor produce/publica
+#     HOY. Para lanzar en un solo idioma e ir integrando los demás, pon aquí solo
+#     ese idioma y ve agregando. Si se omite, se activan TODOS los `languages`.
+#     Ej: languages:[es,en,pt,fr,de] + active_languages:[es] => solo español.
 # ═══════════════════════════════════════════════════════
 
 projects:

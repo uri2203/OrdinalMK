@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import yaml
 from config.projects import active_languages
 from engine.quality.gate import evaluate as quality_evaluate
+from engine.authority.topical import build_internal_links
 from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
@@ -143,7 +144,14 @@ class MultiProjectOrchestrator:
                     blocked += 1
                     print(f"    Bloqueado [{item['language']}]: {article['slug'][:40]}... ({'; '.join(gate['reasons'])})")
 
-            return {'status': 'ok', 'count': published, 'held': held, 'blocked': blocked}
+            # Autoridad temática: enlaza toda la biblioteca publicada (no solo
+            # los de esta corrida) y detecta la página pilar por idioma.
+            links = build_internal_links(project_id, config)
+            if links['injected']:
+                print(f"    Enlaces internos: {links['injected']} inyectados en {links['articles']} artículos; pilares: {links['pillars']}")
+
+            return {'status': 'ok', 'count': published, 'held': held,
+                    'blocked': blocked, 'links': links['injected']}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}

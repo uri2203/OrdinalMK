@@ -87,29 +87,33 @@ class MultiProjectOrchestrator:
         languages = active_languages(config)
         
         # 1. Content
-        print(f"\n  [1/6] Generating content...")
+        print(f"\n  [1/7] Generating content...")
         result['tasks']['content'] = self._generate_content(project_id, config)
         
         # 2. Landing Pages (multi-lang)
-        print(f"  [2/6] Creating multi-language landing pages...")
+        print(f"  [2/7] Creating multi-language landing pages...")
         result['tasks']['landing'] = self._create_multilang_landing(project_id, config)
         
         # 3. SEO (multi-lang)
-        print(f"  [3/6] Optimizing SEO (multi-language)...")
+        print(f"  [3/7] Optimizing SEO (multi-language)...")
         result['tasks']['seo'] = self._optimize_seo_multilang(project_id, config)
         
         # 4. Email Segmentation
-        print(f"  [4/6] Setting up email segmentation...")
+        print(f"  [4/7] Setting up email segmentation...")
         result['tasks']['email'] = self._setup_email_segmentation(project_id, config)
         
         # 5. Distribution Report
-        print(f"  [5/6] Generating distribution report...")
+        print(f"  [5/7] Generating distribution report...")
         result['tasks']['distribution'] = self._generate_distribution_report(project_id, config)
         
         # 6. Deploy (push to GitHub)
-        print(f"  [6/6] Deploying to GitHub...")
+        print(f"  [6/7] Deploying to GitHub...")
         result['tasks']['deploy'] = self._deploy(project_id, config)
-        
+
+        # 7. Recomendaciones del director (medición + huecos + canibalización)
+        print(f"  [7/7] Recomendaciones del director...")
+        result['tasks']['recommendations'] = self._recommendations(project_id, config)
+
         result['completed_at'] = datetime.now().isoformat()
         result['status'] = 'completed'
         
@@ -168,6 +172,23 @@ class MultiProjectOrchestrator:
             return {'status': 'ok', 'count': published, 'held': held,
                     'blocked': blocked, 'links': links['injected'],
                     'cannibalization': len(collisions)}
+        except Exception as e:
+            print(f"    Error: {e}")
+            return {'status': 'error', 'message': str(e)}
+
+    def _recommendations(self, project_id: str, config: dict) -> dict:
+        """Genera y guarda recomendaciones accionables priorizadas del director."""
+        try:
+            from engine.intelligence.recommendations import generate_and_save
+            out = generate_and_save(project_id, config)
+            top = out['recommendations'][:3]
+            if top:
+                print(f"    {out['count']} recomendaciones (GSC={'sí' if out['gsc_available'] else 'no'}). Top:")
+                for r in top:
+                    print(f"      • {r['action']}")
+            else:
+                print("    Sin recomendaciones aún (falta contenido/medición).")
+            return {'status': 'ok', 'count': out['count'], 'gsc': out['gsc_available']}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}

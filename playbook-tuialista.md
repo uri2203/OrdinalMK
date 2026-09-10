@@ -130,3 +130,35 @@ En paralelo desde el lanzamiento: OrdinalMK sembrando SEO.
 - Precio único en USD frena la conversión en LATAM; palanca futura = plan local
   o precio por región.
 - Retención = producto. Ningún canal salva un producto que no retiene.
+
+---
+
+## 7. Recomendación oficial: valida gratis → gasta validado
+
+No es "¿gasto o no gasto?" — es "¿ya validé?". Secuencia:
+
+**Fase 0 — Terminar el producto.** Debe retener (uso real, baja cancelación).
+Sin esto, ni gastar ni no gastar sirve.
+
+**Fase 1 — Lanzar con lo gratis-rápido + SEO (mes 1–3), sin gastar:**
+- Videos demo del founder (30 s; el demo es el anuncio).
+- Postear en grupos de contadores/PYME en Facebook + contacto directo.
+- Encender OrdinalMK/SEO (corre solo, compone gratis).
+- Meta: primeros ~15–30 clientes y **probar que la landing convierte y que la
+  gente se queda.**
+
+**Fase 2 — Interruptor de anuncios (encender solo si se cumplen 2 condiciones):**
+1. La landing convierte (≥4 de cada 100 visitas prueban).
+2. La retención aguanta (la mayoría no cancela el primer mes).
+Cumplidas: anuncios con presupuesto chico ($10–15/día) en México/es. Ya no es
+gasto, es inversión (CAC ~$40 → LTV ~$500, ~12x). **Escalar con las ganancias
+que generan los propios clientes, no con el bolsillo.**
+
+### Por qué
+- No gastar nunca = demasiado lento (~10 clientes al año 1; difícil sobrevivir).
+- Gastar desde el día 1 = ruleta (dinero a un embudo no validado).
+- Validar gratis y luego gastar = arranque rápido sin riesgo + aceleración con
+  certeza de que multiplica.
+
+**El único juez es la retención.** Si el producto engancha, esta secuencia lleva
+de 0 a negocio real; si no engancha, se arregla el producto, no el marketing.

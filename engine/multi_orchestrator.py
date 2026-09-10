@@ -19,6 +19,7 @@ from config.projects import active_languages
 from engine.quality.gate import evaluate as quality_evaluate
 from engine.authority.topical import build_internal_links
 from engine.authority.cannibalization import detect as detect_cannibalization
+from engine.distribution.repurpose import repurpose_and_save
 from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
@@ -136,6 +137,12 @@ class MultiProjectOrchestrator:
                     if result['status'] == 'published':
                         published += 1
                         print(f"    Publicado: {result['slug'][:50]}... ({result['language']}) SEO:{result['seo_score']}")
+                        # Repurposing multi-canal: snippets de redes + email
+                        article['project'] = project_id
+                        try:
+                            repurpose_and_save(article, config)
+                        except Exception as e:
+                            print(f"      [repurpose omitido] {e}")
                 elif gate['decision'] == 'hold_review':
                     self._hold_article(project_id, article, gate)
                     held += 1

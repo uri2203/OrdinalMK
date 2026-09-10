@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml
 from config.projects import active_languages
+from engine.quality.gate import evaluate as quality_evaluate
 from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
@@ -121,20 +122,43 @@ class MultiProjectOrchestrator:
 
             # Generate calendar
             calendar = publisher.get_content_calendar(7)
-            
-            # Publish 2 articles
-            published = 0
+
+            # Generate + puerta de calidad + publicar
+            published = held = blocked = 0
             for item in calendar[:2]:
                 article = publisher.generate_article(item['topic'], item['language'])
-                result = publisher.publish_article(article)
-                if result['status'] == 'published':
-                    published += 1
-                    print(f"    Published: {result['slug'][:50]}... ({result['language']}) SEO:{result['seo_score']}")
-            
-            return {'status': 'ok', 'count': published}
+                gate = quality_evaluate(article)
+
+                if gate['decision'] == 'publish':
+                    result = publisher.publish_article(article)
+                    if result['status'] == 'published':
+                        published += 1
+                        print(f"    Publicado: {result['slug'][:50]}... ({result['language']}) SEO:{result['seo_score']}")
+                elif gate['decision'] == 'hold_review':
+                    self._hold_article(project_id, article, gate)
+                    held += 1
+                    print(f"    En revisión [{item['language']}]: {article['slug'][:40]}... (fiscal/legal: {', '.join(gate['flags'])})")
+                else:  # blocked
+                    self._hold_article(project_id, article, gate)
+                    blocked += 1
+                    print(f"    Bloqueado [{item['language']}]: {article['slug'][:40]}... ({'; '.join(gate['reasons'])})")
+
+            return {'status': 'ok', 'count': published, 'held': held, 'blocked': blocked}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}
+
+    def _hold_article(self, project_id: str, article: dict, gate: dict) -> None:
+        """Guarda un artículo NO publicado (bloqueado o en revisión) con el motivo.
+
+        Los de 'hold_review' esperan visto bueno humano antes de publicarse;
+        los 'blocked' quedan como registro de por qué no pasaron.
+        """
+        out = Path(__file__).parent.parent / "content" / project_id / "_held"
+        out.mkdir(parents=True, exist_ok=True)
+        payload = {**article, 'gate': gate}
+        with open(out / f"{article['slug']}.json", 'w', encoding='utf-8') as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
     
     def _create_landing(self, project_id: str, config: dict) -> dict:
         """Create landing pages for a project."""

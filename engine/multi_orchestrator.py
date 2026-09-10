@@ -18,6 +18,7 @@ import yaml
 from config.projects import active_languages
 from engine.quality.gate import evaluate as quality_evaluate
 from engine.authority.topical import build_internal_links
+from engine.authority.cannibalization import detect as detect_cannibalization
 from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
@@ -150,8 +151,16 @@ class MultiProjectOrchestrator:
             if links['injected']:
                 print(f"    Enlaces internos: {links['injected']} inyectados en {links['articles']} artículos; pilares: {links['pillars']}")
 
+            # Guardia anti-canibalización: avisa si dos páginas compiten por la
+            # misma keyword (se hundirían entre sí en Google).
+            collisions = detect_cannibalization(project_id, config)
+            if collisions:
+                print(f"    ⚠ Canibalización: {len(collisions)} colisión(es) → " +
+                      "; ".join(f"{c['slugs']} ({c['reason']})" for c in collisions[:3]))
+
             return {'status': 'ok', 'count': published, 'held': held,
-                    'blocked': blocked, 'links': links['injected']}
+                    'blocked': blocked, 'links': links['injected'],
+                    'cannibalization': len(collisions)}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}

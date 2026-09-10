@@ -1,6 +1,13 @@
 # ═══════════════════════════════════════════════════════
 # OrdinalMK — Multi-Project Configuration
 # Each project defines its own identity, content, and channels
+#
+# LANZAMIENTO POR FASES (idiomas):
+#   - `languages:` = todos los idiomas que el proyecto SOPORTA.
+#   - `active_languages:` (opcional) = subconjunto que el motor produce/publica
+#     HOY. Para lanzar en un solo idioma e ir integrando los demás, pon aquí solo
+#     ese idioma y ve agregando. Si se omite, se activan TODOS los `languages`.
+#     Ej: languages:[es,en,pt,fr,de] + active_languages:[es] => solo español.
 # ═══════════════════════════════════════════════════════
 
 projects:
@@ -523,6 +530,38 @@ projects:
         features: ["Todo Pro", "API dedicada", "Personalización completa", "SLA 99.9%"]
         note: "Contactar para precio"
     
+    # SEO — keywords objetivo por idioma (alimentan inteligencia + recomendaciones)
+    seo:
+      target_keywords:
+        es:
+          - "software de facturación con ia"
+          - "automatizar facturación cfdi"
+          - "ia local para empresas"
+          - "automatizar excel con ia"
+          - "ia que no sube datos a la nube"
+          - "mejor software de facturación 2026"
+        en:
+          - "ai invoicing software"
+          - "automate excel with ai"
+          - "local ai for business"
+          - "private ai for companies"
+          - "best ai automation tool 2026"
+        pt:
+          - "software de nota fiscal com ia"
+          - "automatizar excel com ia"
+          - "ia local para empresas"
+          - "ia privada para empresas"
+        fr:
+          - "logiciel de facturation avec ia"
+          - "automatiser excel avec ia"
+          - "ia locale pour entreprise"
+          - "ia privée pour entreprise"
+        de:
+          - "ki rechnungssoftware"
+          - "excel mit ki automatisieren"
+          - "lokale ki für unternehmen"
+          - "private ki für unternehmen"
+
     deploy:
       repo: uri2203/tuialista-site
       branch: main

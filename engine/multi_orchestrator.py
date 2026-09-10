@@ -15,6 +15,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml
+from config.projects import active_languages
+from engine.quality.gate import evaluate as quality_evaluate
+from engine.authority.topical import build_internal_links
+from engine.authority.cannibalization import detect as detect_cannibalization
+from engine.distribution.repurpose import repurpose_and_save
 from engine.publishers.content_publisher import ContentPublisher
 from engine.publishers.email_automation import EmailAutomation
 from engine.publishers.landing_page import LandingPageGenerator
@@ -79,32 +84,36 @@ class MultiProjectOrchestrator:
             'tasks': {}
         }
         
-        languages = config.get('languages', ['es', 'en'])
+        languages = active_languages(config)
         
         # 1. Content
-        print(f"\n  [1/6] Generating content...")
+        print(f"\n  [1/7] Generating content...")
         result['tasks']['content'] = self._generate_content(project_id, config)
         
         # 2. Landing Pages (multi-lang)
-        print(f"  [2/6] Creating multi-language landing pages...")
+        print(f"  [2/7] Creating multi-language landing pages...")
         result['tasks']['landing'] = self._create_multilang_landing(project_id, config)
         
         # 3. SEO (multi-lang)
-        print(f"  [3/6] Optimizing SEO (multi-language)...")
+        print(f"  [3/7] Optimizing SEO (multi-language)...")
         result['tasks']['seo'] = self._optimize_seo_multilang(project_id, config)
         
         # 4. Email Segmentation
-        print(f"  [4/6] Setting up email segmentation...")
+        print(f"  [4/7] Setting up email segmentation...")
         result['tasks']['email'] = self._setup_email_segmentation(project_id, config)
         
         # 5. Distribution Report
-        print(f"  [5/6] Generating distribution report...")
+        print(f"  [5/7] Generating distribution report...")
         result['tasks']['distribution'] = self._generate_distribution_report(project_id, config)
         
         # 6. Deploy (push to GitHub)
-        print(f"  [6/6] Deploying to GitHub...")
+        print(f"  [6/7] Deploying to GitHub...")
         result['tasks']['deploy'] = self._deploy(project_id, config)
-        
+
+        # 7. Recomendaciones del director (medición + huecos + canibalización)
+        print(f"  [7/7] Recomendaciones del director...")
+        result['tasks']['recommendations'] = self._recommendations(project_id, config)
+
         result['completed_at'] = datetime.now().isoformat()
         result['status'] = 'completed'
         
@@ -120,20 +129,81 @@ class MultiProjectOrchestrator:
 
             # Generate calendar
             calendar = publisher.get_content_calendar(7)
-            
-            # Publish 2 articles
-            published = 0
+
+            # Generate + puerta de calidad + publicar
+            published = held = blocked = 0
             for item in calendar[:2]:
                 article = publisher.generate_article(item['topic'], item['language'])
-                result = publisher.publish_article(article)
-                if result['status'] == 'published':
-                    published += 1
-                    print(f"    Published: {result['slug'][:50]}... ({result['language']}) SEO:{result['seo_score']}")
-            
-            return {'status': 'ok', 'count': published}
+                gate = quality_evaluate(article)
+
+                if gate['decision'] == 'publish':
+                    result = publisher.publish_article(article)
+                    if result['status'] == 'published':
+                        published += 1
+                        print(f"    Publicado: {result['slug'][:50]}... ({result['language']}) SEO:{result['seo_score']}")
+                        # Repurposing multi-canal: snippets de redes + email
+                        article['project'] = project_id
+                        try:
+                            repurpose_and_save(article, config)
+                        except Exception as e:
+                            print(f"      [repurpose omitido] {e}")
+                elif gate['decision'] == 'hold_review':
+                    self._hold_article(project_id, article, gate)
+                    held += 1
+                    print(f"    En revisión [{item['language']}]: {article['slug'][:40]}... (fiscal/legal: {', '.join(gate['flags'])})")
+                else:  # blocked
+                    self._hold_article(project_id, article, gate)
+                    blocked += 1
+                    print(f"    Bloqueado [{item['language']}]: {article['slug'][:40]}... ({'; '.join(gate['reasons'])})")
+
+            # Autoridad temática: enlaza toda la biblioteca publicada (no solo
+            # los de esta corrida) y detecta la página pilar por idioma.
+            links = build_internal_links(project_id, config)
+            if links['injected']:
+                print(f"    Enlaces internos: {links['injected']} inyectados en {links['articles']} artículos; pilares: {links['pillars']}")
+
+            # Guardia anti-canibalización: avisa si dos páginas compiten por la
+            # misma keyword (se hundirían entre sí en Google).
+            collisions = detect_cannibalization(project_id, config)
+            if collisions:
+                print(f"    ⚠ Canibalización: {len(collisions)} colisión(es) → " +
+                      "; ".join(f"{c['slugs']} ({c['reason']})" for c in collisions[:3]))
+
+            return {'status': 'ok', 'count': published, 'held': held,
+                    'blocked': blocked, 'links': links['injected'],
+                    'cannibalization': len(collisions)}
         except Exception as e:
             print(f"    Error: {e}")
             return {'status': 'error', 'message': str(e)}
+
+    def _recommendations(self, project_id: str, config: dict) -> dict:
+        """Genera y guarda recomendaciones accionables priorizadas del director."""
+        try:
+            from engine.intelligence.recommendations import generate_and_save
+            out = generate_and_save(project_id, config)
+            top = out['recommendations'][:3]
+            if top:
+                print(f"    {out['count']} recomendaciones (GSC={'sí' if out['gsc_available'] else 'no'}). Top:")
+                for r in top:
+                    print(f"      • {r['action']}")
+            else:
+                print("    Sin recomendaciones aún (falta contenido/medición).")
+            return {'status': 'ok', 'count': out['count'], 'gsc': out['gsc_available']}
+        except Exception as e:
+            print(f"    Error: {e}")
+            return {'status': 'error', 'message': str(e)}
+
+    def _hold_article(self, project_id: str, article: dict, gate: dict) -> None:
+        """Guarda un artículo NO publicado (bloqueado o en revisión) con el motivo.
+
+        Los de 'hold_review' esperan visto bueno humano antes de publicarse;
+        los 'blocked' quedan como registro de por qué no pasaron.
+        """
+        out = Path(__file__).parent.parent / "content" / project_id / "_held"
+        out.mkdir(parents=True, exist_ok=True)
+        payload = {**article, 'gate': gate}
+        with open(out / f"{article['slug']}.json", 'w', encoding='utf-8') as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
     
     def _create_landing(self, project_id: str, config: dict) -> dict:
         """Create landing pages for a project."""
@@ -168,7 +238,7 @@ class MultiProjectOrchestrator:
     def _create_multilang_landing(self, project_id: str, config: dict) -> dict:
         """Create multi-language landing pages with hreflang."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             landing_gen = MultilangLandingPageGenerator(
                 project_id, languages,
                 domain=config.get('domain'),
@@ -232,7 +302,7 @@ class MultiProjectOrchestrator:
     def _optimize_seo_multilang(self, project_id: str, config: dict) -> dict:
         """Generate multi-language SEO assets with hreflang."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             # Generate sitemaps per language
@@ -265,7 +335,7 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
     def _setup_email_segmentation(self, project_id: str, config: dict) -> dict:
         """Set up email segmentation by language."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             email_engine = EmailSegmentation(project_id, languages)
             
             # Generate segmentation report
@@ -289,7 +359,7 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
     def _generate_distribution_report(self, project_id: str, config: dict) -> dict:
         """Generate comprehensive distribution report."""
         try:
-            languages = config.get('languages', ['es', 'en'])
+            languages = active_languages(config)
             distributor = RegionalDistributor(project_id, languages, domain=config.get('domain'))
             
             report = distributor.get_region_report()
@@ -339,7 +409,8 @@ Sitemap: https://{config['domain']}/sitemap_index.xml
             published_dir = Path(__file__).parent.parent / "published" / project_id
             # Solo las landings por idioma (published/<p>/<lang>/*.html), no las
             # de subcarpetas antiguas como landing/ (generador legacy, SEO débil).
-            languages = config.get('languages') or []
+            # Solo publica los idiomas ACTIVOS (lanzamiento por fases).
+            languages = active_languages(config)
             landings = []
             if published_dir.exists():
                 if languages:

@@ -129,9 +129,23 @@ class ContentPublisher:
         }
 
     def get_content_calendar(self, days: int = 30) -> list:
-        """Generate a content calendar for the next N days."""
+        """Generate a content calendar for the next N days.
+
+        Solo agenda los idiomas ACTIVOS del proyecto (lanzamiento por fases):
+        los idiomas soportados pero aún no activos no se producen todavía.
+        """
+        try:
+            import sys as _sys
+            _sys.path.insert(0, str(REPO_ROOT))
+            from config.projects import active_languages as _active
+            active = set(_active(self.config))
+        except Exception:
+            active = set(self.topics.keys())  # fallback: todos
+
         all_topics = []
         for lang, lang_topics in self.topics.items():
+            if lang not in active:
+                continue
             for topic in lang_topics:
                 all_topics.append({'topic': topic, 'language': lang})
 

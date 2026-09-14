@@ -51,6 +51,26 @@
     </style>
 </head>
 <body>
+<div id="ordinalmk-lock" style="position:fixed;inset:0;z-index:99999;background:#0f1117;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;color:#e4e6f0">
+  <div style="background:#1a1d27;border:1px solid #2d3140;border-radius:16px;padding:2rem;max-width:340px;width:90%;text-align:center">
+    <h2 style="margin-bottom:.4rem;font-size:1.2rem">OrdinalMK</h2>
+    <p style="color:#8b8fa3;font-size:.85rem;margin-bottom:1.2rem">Acceso restringido</p>
+    <input id="ordinalmk-pw" type="password" placeholder="Contraseña" autocomplete="off" style="width:100%;padding:.7rem;border-radius:8px;border:1px solid #2d3140;background:#0f1117;color:#e4e6f0;margin-bottom:.8rem;font-size:1rem">
+    <button id="ordinalmk-btn" style="width:100%;padding:.7rem;border:none;border-radius:8px;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;font-size:1rem">Entrar</button>
+    <p id="ordinalmk-err" style="color:#ef4444;font-size:.8rem;margin-top:.7rem;display:none">Contraseña incorrecta</p>
+  </div>
+</div>
+<script>
+(function(){
+  var HASH="483ee442528224898ce0538bdac1043afb3612e8c43ea0595ed6e7177d5b1852";
+  var lock=document.getElementById('ordinalmk-lock');
+  async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+  async function unlock(){var v=document.getElementById('ordinalmk-pw').value;var h=await sha(v);if(h===HASH){try{sessionStorage.setItem('ordinalmk_ok','1')}catch(e){}lock.style.display='none';document.body.style.overflow=''}else{document.getElementById('ordinalmk-err').style.display='block'}}
+  if(sessionStorage.getItem('ordinalmk_ok')==='1'){lock.style.display='none'}else{document.body.style.overflow='hidden'}
+  document.getElementById('ordinalmk-btn').addEventListener('click',unlock);
+  document.getElementById('ordinalmk-pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock()});
+})();
+</script>
     <header class="header">
         <h1>Ordinal<span style="color:var(--accent)">MK</span></h1>
         <div class="header-meta">

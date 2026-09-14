@@ -62,7 +62,7 @@
 </div>
 <script>
 (function(){
-  var HASH="483ee442528224898ce0538bdac1043afb3612e8c43ea0595ed6e7177d5b1852";
+  var HASH="46635b56d3c7f0b7bb26adae2a1692debbfd145d4a0986a9137fe91e73e70360";
   var lock=document.getElementById('ordinalmk-lock');
   async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
   async function unlock(){var v=document.getElementById('ordinalmk-pw').value;var h=await sha(v);if(h===HASH){try{sessionStorage.setItem('ordinalmk_ok','1')}catch(e){}lock.style.display='none';document.body.style.overflow=''}else{document.getElementById('ordinalmk-err').style.display='block'}}

@@ -137,6 +137,14 @@ class MultiProjectOrchestrator:
         print(f"  [7/7] Recomendaciones del director...")
         result['tasks']['recommendations'] = self._recommendations(project_id, config)
 
+        # Reporte por proyecto (JSON + HTML en reports/generated/)
+        try:
+            from engine.reporting.report import generate as gen_report
+            gen_report(project_id, config)
+            print(f"    Reporte guardado: reports/generated/{project_id}.html")
+        except Exception as e:
+            print(f"    [reporte omitido] {e}")
+
         result['completed_at'] = datetime.now().isoformat()
         result['status'] = 'completed'
         

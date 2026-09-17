@@ -146,6 +146,13 @@ class MultiProjectOrchestrator:
         except Exception as e:
             print(f"    [redes omitido] {e}")
 
+        # Campañas de anuncios listas para lanzar (no gasta; el dueño aprueba)
+        try:
+            from engine.ads.campaigns import generate as gen_campaign
+            gen_campaign(project_id, config)
+        except Exception as e:
+            print(f"    [ads omitido] {e}")
+
         # Reporte por proyecto (JSON + HTML en reports/generated/)
         try:
             from engine.reporting.report import generate as gen_report

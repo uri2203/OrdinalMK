@@ -16,6 +16,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml
 from config.projects import active_languages
+from engine.governance import (
+    active_projects_ordered, articles_per_day, project_priority)
 from engine.quality.gate import evaluate as quality_evaluate
 from engine.authority.topical import build_internal_links
 from engine.authority.cannibalization import detect as detect_cannibalization
@@ -72,8 +74,29 @@ class MultiProjectOrchestrator:
         """Run marketing for a single project."""
         if project_id not in self.projects:
             return {'error': f'Project {project_id} not found'}
-        
+
         return self._run_project(project_id, self.projects[project_id])
+
+    def run_all_active(self) -> dict:
+        """Corrida diaria autónoma: solo proyectos HABILITADOS, en orden de
+        prioridad (gobierno). Es el punto de entrada para el cron diario."""
+        ordered = active_projects_ordered(self.projects)
+        print(f"\n{'='*60}")
+        print(f"OrdinalMK — Corrida diaria (proyectos activos)")
+        print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"  Activos por prioridad: " +
+              ", ".join(f"{pid}({project_priority(cfg)})" for pid, cfg in ordered))
+        print(f"{'='*60}")
+
+        for project_id, project_config in ordered:
+            print(f"\n{'-'*60}")
+            print(f"  PROJECT: {project_config.get('name', project_id)}")
+            print(f"{'-'*60}")
+            self.results[project_id] = self._run_project(project_id, project_config)
+
+        self._print_summary()
+        self._save_results()
+        return self.results
     
     def _run_project(self, project_id: str, config: dict) -> dict:
         """Run all marketing tasks for one project."""
@@ -130,9 +153,12 @@ class MultiProjectOrchestrator:
             # Generate calendar
             calendar = publisher.get_content_calendar(7)
 
+            # Cuota de gobierno: cuántos artículos produce esta corrida
+            quota = articles_per_day(config, self.engine_config)
+
             # Generate + puerta de calidad + publicar
             published = held = blocked = 0
-            for item in calendar[:2]:
+            for item in calendar[:quota]:
                 article = publisher.generate_article(item['topic'], item['language'])
                 gate = quality_evaluate(article)
 
@@ -552,7 +578,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='OrdinalMK Multi-Project Orchestrator')
-    parser.add_argument('command', choices=['run', 'run-project', 'list'],
+    parser.add_argument('command', choices=['run', 'run-active', 'run-project', 'list'],
                        help='Command to execute')
     parser.add_argument('--project', '-p', help='Project ID (for run-project)')
     parser.add_argument('--config', '-c', help='Config file path')
@@ -563,7 +589,10 @@ if __name__ == "__main__":
     
     if args.command == 'run':
         orchestrator.run_all_projects()
-    
+
+    elif args.command == 'run-active':
+        orchestrator.run_all_active()
+
     elif args.command == 'run-project':
         if not args.project:
             print("Error: --project required")

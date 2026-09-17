@@ -137,6 +137,15 @@ class MultiProjectOrchestrator:
         print(f"  [7/7] Recomendaciones del director...")
         result['tasks']['recommendations'] = self._recommendations(project_id, config)
 
+        # Publicar/encolar los snippets de redes generados
+        try:
+            from engine.distribution.social_publisher import publish_all as social_publish
+            s = social_publish(project_id, config)
+            if s['posted'] or s['queued']:
+                print(f"    Redes: {s['posted']} publicados, {s['queued']} en cola")
+        except Exception as e:
+            print(f"    [redes omitido] {e}")
+
         # Reporte por proyecto (JSON + HTML en reports/generated/)
         try:
             from engine.reporting.report import generate as gen_report

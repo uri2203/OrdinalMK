@@ -43,3 +43,4 @@ Thumbs.db
 # Reportes generados en runtime
 reports/generated/
 reports/email_queue/
+reports/social_queue/

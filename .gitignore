@@ -39,3 +39,9 @@ Thumbs.db
 # Secrets
 .env.*
 !.env.example
+
+# Reportes generados en runtime
+reports/generated/
+reports/email_queue/
+reports/social_queue/
+reports/campaigns/

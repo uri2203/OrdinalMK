@@ -530,6 +530,13 @@ projects:
         features: ["Todo Pro", "API dedicada", "Personalización completa", "SLA 99.9%"]
         note: "Contactar para precio"
     
+    # Gobierno: operación diaria autónoma (habilitado, prioridad, cuota)
+    governance:
+      enabled: true
+      priority: 90
+      articles_per_day: 2
+      brand_voice: "moderno, claro y directo; enfatiza privacidad e IA local"
+
     # SEO — keywords objetivo por idioma (alimentan inteligencia + recomendaciones)
     seo:
       target_keywords:

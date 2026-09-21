@@ -1,61 +1,75 @@
 # ═══════════════════════════════════════════════════════
-# OrdinalMK — Multi-Project Daily Marketing
-# Runs daily, generates content for ALL projects
-# Each project gets its own content, landing pages, SEO
+# OrdinalMK — Corrida diaria de marketing (agencia)
+# Ejecuta scripts/daily_run.py: todos los proyectos activos por prioridad.
+# Contenido con IA + SEO + medición + redes + email + ads + recomendaciones.
 # ═══════════════════════════════════════════════════════
 
 name: Daily Marketing — All Projects
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Every day at 3am UTC
+    - cron: '0 3 * * *'      # Todos los días 3am UTC
   workflow_dispatch:
     inputs:
       project:
-        description: 'Project ID (leave empty for all)'
+        description: 'Project ID (vacío = todos los activos)'
         required: false
         default: ''
+      dry_run:
+        description: 'Dry-run (no publica): 1 para probar'
+        required: false
+        default: '0'
 
 jobs:
   marketing:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
-        run: pip install requests pyyaml
-      
-      - name: Run multi-project orchestrator
+        # Base + IA (anthropic) + medición (Google) para desatar todo el motor.
+        run: pip install -r requirements.txt anthropic google-api-python-client google-auth
+
+      - name: Write GSC credentials (si el secret existe)
+        # El módulo de medición cae a fallback si el archivo está vacío/ausente.
+        run: |
+          printf '%s' '${{ secrets.GSC_SERVICE_ACCOUNT }}' > "$RUNNER_TEMP/gsc.json"
+
+      - name: Run daily marketing
         env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          ORDINALMK_DRY_RUN: ${{ github.event.inputs.dry_run }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GSC_CREDENTIALS: ${{ runner.temp }}/gsc.json
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          # Token (PAT) con acceso de ESCRITURA a los repos de marca
-          # (uri2203/tuialista-site, uri2203/yayika, …). Necesario para publicar
-          # las landings bajo /lp/ en cada dominio. Sin él, el paso de deploy se
-          # salta (no falla). Define ORDINALMK_DRY_RUN=1 para validar sin publicar.
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          # PAT con escritura a los repos de marca (publica las landings en /lp/).
+          # Sin él, el paso de deploy se salta (no falla).
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           if [ -n "${{ github.event.inputs.project }}" ]; then
-            python engine/multi_orchestrator.py run-project -p ${{ github.event.inputs.project }}
+            python engine/multi_orchestrator.py run-project -p "${{ github.event.inputs.project }}"
           else
-            python engine/multi_orchestrator.py run
+            python scripts/daily_run.py
           fi
-      
+
       - name: Commit and push changes
         run: |
           git config user.name "OrdinalMK Bot"
           git config user.email "bot@ordinalmk.dev"
-          git add docs/data/ docs/projects/ published/ logs/
-          git diff --staged --quiet || git commit -m "marketing: $(date +'%Y-%m-%d') — all projects"
-          git push
+          git add docs/data/ docs/projects/ published/ 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "marketing: $(date +'%Y-%m-%d')"
+          git push || true

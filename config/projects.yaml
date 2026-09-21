@@ -537,6 +537,29 @@ projects:
       articles_per_day: 2
       brand_voice: "moderno, claro y directo; enfatiza privacidad e IA local"
 
+    # Prospección B2B (opt-in). Busca despachos/PYMES por giro+zona, consigue
+    # correo de negocio y hace outreach legal (opt-out + dominio dedicado).
+    prospecting:
+      enabled: true
+      categories:
+        - "despacho contable"
+        - "asesoría fiscal"
+        - "contador público"
+      locations:
+        - "Ciudad de México"
+        - "Guadalajara"
+        - "Monterrey"
+      language: es
+      max_discover_per_run: 20
+      max_emails_per_day: 25
+      sender:
+        from_name: "TuIAlista"
+        from_email: "hola@mail.tuialista.com"   # DOMINIO DE ENVÍO DEDICADO
+        reply_to: "hola@tuialista.com"
+        company: "TuIAlista"
+        address: "México"
+        unsubscribe: "Responde BAJA y no vuelvo a escribirte."
+
     # SEO — keywords objetivo por idioma (alimentan inteligencia + recomendaciones)
     seo:
       target_keywords:

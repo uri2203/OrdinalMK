@@ -47,3 +47,4 @@ reports/social_queue/
 reports/campaigns/
 reports/conversions/
 reports/prospects/
+reports/panel_last_run.log

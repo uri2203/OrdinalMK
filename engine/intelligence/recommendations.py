@@ -20,6 +20,7 @@ sys.path.insert(0, str(REPO_ROOT))  # permite ejecutar el módulo suelto
 
 from engine.measurement.search_console import (
     SearchConsole, pages_on_page_two, high_impressions_low_ctr)
+from engine.measurement.conversions import top_content_by_revenue
 from engine.intelligence.keywords import suggest_next
 from engine.authority.cannibalization import detect as detect_cannibalization
 
@@ -32,6 +33,16 @@ def generate(project_id: str, config: dict, gsc_rows: list = None,
     """Genera recomendaciones accionables priorizadas para un proyecto."""
     config = config or {}
     recs = []
+
+    # ── Dinero primero: doblar apuesta en lo que genera ingreso ──
+    for t in top_content_by_revenue(project_id, n=3):
+        if t.get('revenue', 0) > 0:
+            recs.append({
+                'type': 'double_down', 'priority': 95, 'content': t['content'],
+                'revenue': t['revenue'],
+                'action': f"'{t['content']}' genera ${t['revenue']}: crea más contenido "
+                          f"similar y súbele presupuesto.",
+            })
 
     # ── Medición (GSC) ── quick wins de ranking ──
     if gsc_rows is None:

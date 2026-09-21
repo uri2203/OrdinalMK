@@ -19,6 +19,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from engine.authority.cannibalization import detect as detect_cannibalization
 from engine.intelligence.recommendations import generate as gen_recommendations
+from engine.measurement.conversions import summary as conversions_summary
 
 CONTENT_ROOT = REPO_ROOT / "content"
 REPORTS_DIR = REPO_ROOT / "reports" / "generated"
@@ -53,6 +54,7 @@ def generate(project_id: str, config: dict, content_root: Path = CONTENT_ROOT,
     stats = _content_stats(project_id, content_root)
     cannibalization = detect_cannibalization(project_id, config, content_root=content_root)
     recs = gen_recommendations(project_id, config, content_root=content_root)
+    conv = conversions_summary(project_id)
 
     report = {
         'project': project_id,
@@ -61,6 +63,8 @@ def generate(project_id: str, config: dict, content_root: Path = CONTENT_ROOT,
         'content': stats,
         'cannibalization': len(cannibalization),
         'gsc_available': recs.get('gsc_available', False),
+        'conversions': conv['totals'],
+        'trial_to_paid': conv['trial_to_paid'],
         'recommendations': recs.get('recommendations', [])[:10],
     }
 
@@ -99,6 +103,8 @@ def _render_html(r: dict) -> str:
    <div class="card"><div class="num">{r['content']['held_or_blocked']}</div><div class="lbl">en revisión / bloqueados</div></div>
    <div class="card"><div class="num">{r['cannibalization']}</div><div class="lbl">canibalización</div></div>
    <div class="card"><div class="num">{'Sí' if r['gsc_available'] else 'No'}</div><div class="lbl">medición GSC</div></div>
+   <div class="card"><div class="num">${r['conversions']['revenue']}</div><div class="lbl">ingreso ({r['conversions']['paid']} pagos)</div></div>
+   <div class="card"><div class="num">{round(r['trial_to_paid']*100)}%</div><div class="lbl">prueba → pago</div></div>
  </div>
  <h2>Publicados por idioma</h2><ul>{langs}</ul>
  <h2>Recomendaciones del director</h2><ul>{recs}</ul>

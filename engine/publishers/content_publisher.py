@@ -124,7 +124,7 @@ class ContentPublisher:
             'language': article['language'],
             'word_count': article['word_count'],
             'seo_score': article['seo_score'],
-            'ai_generated': article['ai_generated'],
+            'ai_generated': article.get('ai_generated', False),
             'html_path': str(html_path),
         }
 

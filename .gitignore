@@ -55,3 +55,4 @@ reports/index_queue/
 reports/syndication_queue/
 reports/local_queue/
 reports/alerts/
+config/custom_projects.json

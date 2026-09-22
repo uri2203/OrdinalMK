@@ -24,11 +24,12 @@ def load_config(path: str = None) -> dict:
     # Resolve env vars in config (basic substitution)
     _resolve_env_vars(config)
 
-    # Fusiona overrides editables desde el panel (no destructivo; opcional)
+    # Fusiona proyectos custom (alta/edición/borrado) + overrides de campos,
+    # todo no destructivo (no toca projects.yaml). Opcional.
     try:
-        from engine.ops.config_editor import apply_overrides
+        from engine.ops.config_editor import apply_all
         if isinstance(config.get('projects'), dict):
-            config['projects'] = apply_overrides(config['projects'])
+            config['projects'] = apply_all(config['projects'])
     except Exception:
         pass
 

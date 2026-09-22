@@ -412,6 +412,8 @@ def home():
     <div class=top>
       <div><h1>Centro de control</h1>
       <div class=sub>Marketing de {{agg.total}} proyectos, operados desde un solo lugar.</div></div>
+      <div class=spacer></div>
+      <a class=btn href="{{url_for('project_new')}}">＋ Nuevo proyecto</a>
     </div>
 
     <div class=kpis>
@@ -466,10 +468,13 @@ def home():
           {% if s.prospecting %}Usa “Descubrir”.{% else %}Prospección desactivada.{% endif %}</div>
         {% endif %}
 
-        <div style="display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap">
+        <div style="display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap;align-items:center">
           <a class="btn sm" href="{{url_for('project', pid=s.id)}}">Ver proyecto</a>
           <a class="btn sm sec" href="{{url_for('prospects', project=s.id)}}">Prospectos</a>
-          <a class="btn sm sec" href="{{url_for('report', project=s.id)}}">Reporte</a>
+          <a class="btn sm sec" href="{{url_for('project_edit', pid=s.id)}}">Editar</a>
+          <form method=post action="{{url_for('project_delete', pid=s.id)}}"
+            onsubmit="return confirm('¿Eliminar {{s.name}}? Se puede recrear después.')" style="margin-left:auto">
+            <button class="dng sm">Eliminar</button></form>
         </div>
       </div>
     {% endfor %}
@@ -668,6 +673,120 @@ def project(pid):
                   prog_pages=prog_pages, bl=bl, idx_pending=idx_pending,
                   alerts_recent=alerts_recent,
                   funnel=FUNNEL, funnel_label=FUNNEL_LABEL)
+
+
+_PROJECT_FORM = """
+<a class=back href="{{url_for('home')}}">← Centro de control</a>
+<div class=top><div><h1>{{ 'Editar' if editing else 'Nuevo' }} proyecto</h1>
+  <div class=sub>{{ 'Ajusta los datos del proyecto.' if editing else 'Se guarda sin tocar projects.yaml (archivo aparte que el motor fusiona).' }}</div></div></div>
+<div class=card>
+  <form method=post action="{{url_for('project_save')}}"
+    style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+    {% macro field(name,label,val,ph='',typ='text') %}
+      <label class=muted style="font-size:.82rem">{{label}}
+        <input type={{typ}} name="{{name}}" value="{{val or ''}}" placeholder="{{ph}}"
+          style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.5rem">
+      </label>
+    {% endmacro %}
+    <label class=muted style="font-size:.82rem">ID (slug){{ ' — no editable' if editing else '' }}
+      <input type=text name="id" value="{{d.id or ''}}" placeholder="mi-proyecto" {{'readonly' if editing else ''}}
+        style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:{{'var(--muted)' if editing else 'var(--text)'}};border-radius:8px;padding:.5rem">
+    </label>
+    {{ field('name','Nombre*', d.name, 'Mi Proyecto') }}
+    {{ field('domain','Dominio*', d.domain, 'miproyecto.com') }}
+    {{ field('github_repo','Repo GitHub', d.github_repo, 'usuario/repo') }}
+    {{ field('primary_language','Idioma principal', d.primary_language or 'es', 'es') }}
+    {{ field('languages','Idiomas (coma)', d.languages, 'es, en, pt') }}
+    <label class=muted style="font-size:.82rem;grid-column:1/3">Concepto
+      <input type=text name="concept" value="{{d.concept or ''}}" placeholder="qué hace el producto"
+        style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.5rem"></label>
+    {{ field('audience_location','Ubicación audiencia', d.audience_location, 'México') }}
+    <label class=muted style="font-size:.82rem">Color de marca
+      <input type=color name="theme_primary" value="{{d.theme_primary or '#6d5efc'}}"
+        style="width:100%;height:38px;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.2rem"></label>
+    {{ field('priority','Prioridad (0-100)', d.priority or 50, '50', 'number') }}
+    {{ field('articles_per_day','Artículos/día', d.articles_per_day or 2, '2', 'number') }}
+    <label class=muted style="font-size:.82rem">Estado
+      <select name="enabled" style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.5rem">
+        <option value="true" {{'selected' if d.enabled!=False else ''}}>activo</option>
+        <option value="false" {{'selected' if d.enabled==False else ''}}>pausado</option></select></label>
+    <label class=muted style="font-size:.82rem;grid-column:1/3">Voz de marca
+      <input type=text name="brand_voice" value="{{d.brand_voice or ''}}" placeholder="cercano, claro"
+        style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.5rem"></label>
+    <div style="grid-column:1/3;border-top:1px solid var(--line);padding-top:.6rem;margin-top:.2rem">
+      <strong style="font-size:.9rem">Prospección (opcional)</strong></div>
+    <label class=muted style="font-size:.82rem">Prospección
+      <select name="prospecting_enabled" style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.5rem">
+        <option value="false" {{'selected' if not d.prospecting_enabled else ''}}>desactivada</option>
+        <option value="true" {{'selected' if d.prospecting_enabled else ''}}>activa</option></select></label>
+    {{ field('max_emails_per_day','Tope correos/día', d.max_emails_per_day or 25, '25', 'number') }}
+    {{ field('prospecting_categories','Giros (coma)', d.prospecting_categories, 'despacho contable, asesoría fiscal') }}
+    {{ field('prospecting_locations','Zonas (coma)', d.prospecting_locations, 'CDMX, Guadalajara') }}
+    <div style="grid-column:1/3;margin-top:.4rem"><button>{{ 'Guardar cambios' if editing else 'Crear proyecto' }}</button>
+      <a class="btn sec" href="{{url_for('home')}}" style="margin-left:.4rem">Cancelar</a></div>
+  </form>
+</div>
+"""
+
+
+def _project_form_data(pid, cfg):
+    """Aplana un config de proyecto a los campos del formulario."""
+    gov = cfg.get('governance', {}) or {}
+    pr = cfg.get('prospecting', {}) or {}
+    return {
+        'id': pid, 'name': cfg.get('name', ''), 'domain': cfg.get('domain', ''),
+        'github_repo': cfg.get('github_repo', ''),
+        'primary_language': cfg.get('primary_language', 'es'),
+        'languages': ', '.join(cfg.get('languages', []) or []),
+        'concept': cfg.get('concept', ''),
+        'audience_location': (cfg.get('audience', {}) or {}).get('location', ''),
+        'theme_primary': (cfg.get('theme', {}) or {}).get('primary', '#6d5efc'),
+        'priority': gov.get('priority', 50), 'articles_per_day': gov.get('articles_per_day', 2),
+        'enabled': gov.get('enabled', True), 'brand_voice': gov.get('brand_voice', ''),
+        'prospecting_enabled': pr.get('enabled', False),
+        'prospecting_categories': ', '.join(pr.get('categories', []) or []),
+        'prospecting_locations': ', '.join(pr.get('locations', []) or []),
+        'max_emails_per_day': pr.get('max_emails_per_day', 25),
+    }
+
+
+@app.route('/projects/new')
+@login_required
+def project_new():
+    return render(_PROJECT_FORM, nav='home', title='Nuevo proyecto', editing=False, d={})
+
+
+@app.route('/project/<pid>/edit')
+@login_required
+def project_edit(pid):
+    cfg = _cfg().get(pid)
+    if cfg is None:
+        abort(404)
+    return render(_PROJECT_FORM, nav='project', current_pid=pid, title='Editar',
+                  editing=True, d=_project_form_data(pid, cfg))
+
+
+@app.route('/projects/save', methods=['POST'])
+@login_required
+def project_save():
+    try:
+        built = config_editor.build_project(request.form.to_dict())
+        config_editor.save_project(built['id'], built['config'])
+        flash(f"Proyecto guardado: {built['config']['name']}.")
+        return redirect(url_for('project', pid=built['id']))
+    except (ValueError, TypeError) as e:
+        flash(f"No se pudo guardar: {e}")
+        return redirect(url_for('project_new'))
+
+
+@app.route('/project/<pid>/delete', methods=['POST'])
+@login_required
+def project_delete(pid):
+    if _cfg().get(pid) is None:
+        abort(404)
+    r = config_editor.delete_project(pid, base_projects=_cfg())
+    flash(f"Proyecto eliminado ({r.get('mode')}): {pid}.")
+    return redirect(url_for('home'))
 
 
 @app.route('/project/<pid>/config', methods=['POST'])

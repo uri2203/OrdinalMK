@@ -1,0 +1,1 @@
+"""OrdinalMK — Operaciones (alertas, tenancy)."""

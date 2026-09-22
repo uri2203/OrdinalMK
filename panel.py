@@ -41,12 +41,16 @@ from engine.reporting.report import generate as gen_report
 from engine.measurement.conversions import summary as conv_summary
 from engine.intelligence import keywords as kw
 from engine.intelligence import recommendations as recs_mod
+from engine.ops import config_editor
 from engine.publishers.content_publisher import CONTENT_ROOT
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'ordinalmk-panel-dev')
 
 PANEL_PASSWORD = os.environ.get('ORDINALMK_PANEL_PASSWORD', 'ordinalmk')
+# White-label: marca y color configurables por variable de entorno
+BRAND_NAME = os.environ.get('ORDINALMK_BRAND_NAME', 'OrdinalMK')
+BRAND_COLOR = os.environ.get('ORDINALMK_BRAND_COLOR', '#6d5efc')
 REPORTS_DIR = REPO_ROOT / "reports" / "generated"
 PUBLISHED_DIR = REPO_ROOT / "published"
 DATA_DIR = REPO_ROOT / "docs" / "data"
@@ -291,11 +295,11 @@ LAYOUT = """
    font-size:.78rem;color:var(--muted);max-height:340px}
  .back{display:inline-flex;align-items:center;gap:.35rem;color:var(--muted);font-size:.85rem;margin-bottom:1rem}
  @media(max-width:820px){.side{position:fixed;z-index:20;transform:translateX(-100%)}.main{padding:1.2rem}}
-</style></head><body>
+</style><style>:root{--accent:{{brand_color}}}</style></head><body>
 {% if session.get('auth') %}
 <div class=app>
  <aside class=side>
-   <a class=brand href="{{url_for('home')}}"><span class=dot>◆</span> OrdinalMK</a>
+   <a class=brand href="{{url_for('home')}}"><span class=dot>◆</span> {{brand_name}}</a>
    <div class=grp>Operación</div>
    <a class="item {{'on' if nav=='home' else ''}}" href="{{url_for('home')}}"><span class=ic>▦</span> Centro de control</a>
    <a class="item {{'on' if nav=='review' else ''}}" href="{{url_for('review')}}"><span class=ic>✓</span> Revisión {% if held_total %}<span class=cnt>{{held_total}}</span>{% endif %}</a>
@@ -337,10 +341,12 @@ def render(body_html, nav='', title='', current_pid='', **ctx):
     projects_nav = [{'id': pid, 'name': c.get('name', pid), 'color': _color(pid, c)}
                     for pid, c in cfg.items()]
     held_total = sum(len(review_queue.list_held(pid)) for pid in cfg) if session.get('auth') else 0
+    ctx.setdefault('brand_name', BRAND_NAME)
     inner = render_template_string(body_html, **ctx)
     return render_template_string(
         LAYOUT, body=inner, nav=nav, title=title, current_pid=current_pid,
-        projects_nav=projects_nav, held_total=held_total)
+        projects_nav=projects_nav, held_total=held_total,
+        brand_name=BRAND_NAME, brand_color=BRAND_COLOR)
 
 
 # ─────────────────────────────── auth ───────────────────────────────
@@ -356,7 +362,7 @@ def login():
       <div style="width:52px;height:52px;border-radius:14px;margin:0 auto .8rem;
         background:linear-gradient(135deg,#6d5efc,#38bdf8);display:grid;place-items:center;
         font-size:1.4rem;color:#fff;box-shadow:0 8px 24px rgba(109,94,252,.5)">◆</div>
-      <h1 style="font-size:1.4rem">OrdinalMK</h1>
+      <h1 style="font-size:1.4rem">{{brand_name}}</h1>
       <p class=muted style="font-size:.88rem">Centro de mando de marketing</p>
     </div>
     <div class=card>
@@ -588,12 +594,58 @@ def project(pid):
         {% else %}<p class=muted>Aún no hay conversiones registradas.</p>{% endif %}
       </div>
     </div>
+
+    <div class=card>
+      <h2>⚙ Ajustes (editar en vivo)</h2>
+      <form method=post action="{{url_for('project_config', pid=s.id)}}"
+        style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <label class=muted style="font-size:.82rem">Estado
+          <select name="governance.enabled" style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.45rem">
+            <option value="true" {{'selected' if s.enabled else ''}}>activo</option>
+            <option value="false" {{'selected' if not s.enabled else ''}}>pausado</option>
+          </select></label>
+        <label class=muted style="font-size:.82rem">Prioridad
+          <input type=number name="governance.priority" value="{{s.priority}}" min=0 max=100
+            style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.45rem"></label>
+        <label class=muted style="font-size:.82rem">Artículos/día
+          <input type=number name="governance.articles_per_day" value="{{s.articles_per_day}}" min=0 max=20
+            style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.45rem"></label>
+        <label class=muted style="font-size:.82rem">Prospección
+          <select name="prospecting.enabled" style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.45rem">
+            <option value="true" {{'selected' if s.prospecting else ''}}>activa</option>
+            <option value="false" {{'selected' if not s.prospecting else ''}}>desactivada</option>
+          </select></label>
+        <label class=muted style="font-size:.82rem;grid-column:1/3">Voz de marca
+          <input type=text name="governance.brand_voice" value="{{ brand_voice }}"
+            style="width:100%;margin-top:.2rem;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:.45rem"></label>
+        <div style="grid-column:1/3"><button>Guardar cambios</button>
+          <span class=faint style="font-size:.78rem;margin-left:.5rem">Se guarda como override, sin tocar projects.yaml.</span></div>
+      </form>
+    </div>
     <style>@media(max-width:760px){.cols{grid-template-columns:1fr!important}}</style>
     """
     return render(body, nav='project', current_pid=pid, title=s['name'],
                   s=s, icp=icp, gaps=gaps, recs=recs, by_content=by_content,
                   brand_voice=governance.brand_voice(cfg),
                   funnel=FUNNEL, funnel_label=FUNNEL_LABEL)
+
+
+@app.route('/project/<pid>/config', methods=['POST'])
+@login_required
+def project_config(pid):
+    if _cfg().get(pid) is None:
+        abort(404)
+    saved = 0
+    for key in ('governance.enabled', 'governance.priority', 'governance.articles_per_day',
+                'governance.brand_voice', 'prospecting.enabled'):
+        if key in request.form:
+            try:
+                config_editor.set_override(pid, key, request.form.get(key))
+                saved += 1
+            except (ValueError, TypeError):
+                pass
+    flash(f"Ajustes guardados ({saved}).")
+    return redirect(url_for('project', pid=pid))
 
 
 # ─────────────────────── revisión de contenido (_held) ───────────────────────

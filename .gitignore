@@ -48,3 +48,10 @@ reports/campaigns/
 reports/conversions/
 reports/prospects/
 reports/panel_last_run.log
+config/overrides.json
+reports/serp/
+reports/backlinks/
+reports/index_queue/
+reports/syndication_queue/
+reports/local_queue/
+reports/alerts/

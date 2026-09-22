@@ -20,10 +20,18 @@ def load_config(path: str = None) -> dict:
     
     with open(config_path, 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
-    
+
     # Resolve env vars in config (basic substitution)
     _resolve_env_vars(config)
-    
+
+    # Fusiona overrides editables desde el panel (no destructivo; opcional)
+    try:
+        from engine.ops.config_editor import apply_overrides
+        if isinstance(config.get('projects'), dict):
+            config['projects'] = apply_overrides(config['projects'])
+    except Exception:
+        pass
+
     return config
 
 

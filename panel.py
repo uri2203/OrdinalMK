@@ -49,6 +49,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'ordinalmk-panel-dev')
 PANEL_PASSWORD = os.environ.get('ORDINALMK_PANEL_PASSWORD', 'ordinalmk')
 REPORTS_DIR = REPO_ROOT / "reports" / "generated"
 PUBLISHED_DIR = REPO_ROOT / "published"
+DATA_DIR = REPO_ROOT / "docs" / "data"
 LAST_RUN_LOG = REPO_ROOT / "reports" / "panel_last_run.log"
 
 FUNNEL = ['nuevo', 'aprobado', 'contactado', 'respondio', 'convertido']
@@ -83,6 +84,17 @@ def _count_published_pages(pid: str, langs: list) -> dict:
         d = base / lang
         out[lang] = len(list(d.glob('*.html'))) if d.exists() else 0
     return out
+
+
+def _load_data(name: str, default=None):
+    """Lee un JSON de docs/data/ (dashboard SEO). Tolerante a BOM/errores."""
+    f = DATA_DIR / name
+    if not f.exists():
+        return default
+    try:
+        return json.loads(f.read_text(encoding='utf-8-sig'))
+    except Exception:
+        return default
 
 
 def _held_preview(pid: str, slug: str, chars: int = 480) -> str:
@@ -287,6 +299,7 @@ LAYOUT = """
    <div class=grp>Operación</div>
    <a class="item {{'on' if nav=='home' else ''}}" href="{{url_for('home')}}"><span class=ic>▦</span> Centro de control</a>
    <a class="item {{'on' if nav=='review' else ''}}" href="{{url_for('review')}}"><span class=ic>✓</span> Revisión {% if held_total %}<span class=cnt>{{held_total}}</span>{% endif %}</a>
+   <a class="item {{'on' if nav=='seo' else ''}}" href="{{url_for('seo')}}"><span class=ic>📈</span> Analítica / SEO</a>
    <a class="item {{'on' if nav=='system' else ''}}" href="{{url_for('system')}}"><span class=ic>◈</span> Estado del sistema</a>
    <div class=grp>Proyectos</div>
    {% for p in projects_nav %}
@@ -740,6 +753,104 @@ def prospect_set(project, key, status):
     except ValueError as e:
         flash(str(e))
     return redirect(url_for('prospects', project=project))
+
+
+# ─────────────────────────── analítica / SEO ───────────────────────────
+@app.route('/seo')
+@login_required
+def seo():
+    report = _load_data('marketing_report.json', {}) or {}
+    seo_data = _load_data('seo.json', {}) or {}
+    content = _load_data('content.json', {}) or {}
+    # normaliza la última corrida (dato REAL) a filas por proyecto
+    run_rows = []
+    for pid, p in (report.get('projects') or {}).items():
+        t = p.get('tasks', {})
+        run_rows.append({
+            'name': p.get('name', pid),
+            'color': _color(pid, _cfg().get(pid, {})),
+            'content': t.get('content', {}),
+            'landing': t.get('landing', {}),
+            'recs': t.get('recommendations', {}),
+            'deploy': t.get('deploy', {}),
+            'status': p.get('status', ''),
+        })
+    health = seo_data.get('seo_health', {})
+    body = """
+    <div class=top><div><h1>Analítica / SEO</h1>
+      <div class=sub>Todo en un solo lugar, detrás del login real. Arriba lo REAL del motor; abajo, analítica de ejemplo hasta conectar Search Console.</div></div></div>
+
+    <h2 style="color:var(--accent);font-size:1rem;margin:.2rem 0 .8rem">✅ Última corrida del motor <span class=faint style="font-weight:400;font-size:.8rem">· dato real{% if report.generated_at %} · {{ report.generated_at[:16].replace('T',' ') }}{% endif %}</span></h2>
+    {% if not run_rows %}<div class=card><p class=muted>Aún no hay reporte de corrida. Pulsa “▶ Lanzar corrida”.</p></div>{% endif %}
+    <div class=grid>
+    {% for r in run_rows %}
+      <div class=card>
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem">
+          <span class=dot-s style="background:{{r.color}}"></span><strong>{{r.name}}</strong>
+          <span class="pill {{'on' if r.status=='completed' else 'warn'}}" style="margin-left:auto">{{r.status or '—'}}</span>
+        </div>
+        <table>
+          <tr><td class=muted>Contenido</td><td>{{r.content.get('count',0)}} nuevos · <span class=faint>{{r.content.get('blocked',0)}} apartados</span></td></tr>
+          <tr><td class=muted>Landings</td><td>{{r.landing.get('count',0)}} ({{ r.landing.get('languages',[])|join(', ') }})</td></tr>
+          <tr><td class=muted>Recomendaciones</td><td>{{r.recs.get('count',0)}} <span class=faint>{{'· con GSC' if r.recs.get('gsc') else '· sin GSC'}}</span></td></tr>
+          <tr><td class=muted>Deploy</td><td><span class="pill {{'on' if r.deploy.get('status')=='dry-run' else ('dng' if r.deploy.get('status')=='error' else 'info')}}">{{r.deploy.get('status','—')}}</span>{% if r.deploy.get('landings') %} {{r.deploy.get('landings')}} pág.{% endif %}</td></tr>
+        </table>
+      </div>
+    {% endfor %}
+    </div>
+
+    <div style="display:flex;align-items:center;gap:.6rem;margin:1.4rem 0 .8rem">
+      <h2 style="color:var(--accent);font-size:1rem;margin:0">📊 Analítica SEO</h2>
+      <span class="pill warn">datos de ejemplo</span>
+      <span class=faint style="font-size:.8rem">se llenan solos al conectar Google Search Console</span>
+    </div>
+
+    <div class=kpis>
+      <div class="kpi accent"><div class=lbl>Score SEO</div><div class=val>{{ health.get('total_score','—') }} <small>{{ health.get('grade','') }}</small></div></div>
+      <div class=kpi><div class=lbl>Keywords rankeando</div><div class=val>{{ health.get('rankings_count','—') }}</div></div>
+      <div class=kpi><div class=lbl>En top 10</div><div class=val>{{ health.get('top_10_count','—') }}</div></div>
+      <div class=kpi><div class=lbl>Backlinks</div><div class=val>{{ health.get('backlinks_total','—') }}</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" class=cols>
+      <div class=card><h2>Tráfico por idioma</h2><div style="height:220px"><canvas id=chLang></canvas></div></div>
+      <div class=card><h2>Tráfico por país</h2><div style="height:220px"><canvas id=chCountry></canvas></div></div>
+    </div>
+
+    <div class=card>
+      <h2>Rankings de keywords</h2>
+      <table><tr><th>Keyword</th><th>Idioma</th><th>Posición</th><th>URL</th></tr>
+      {% for k in seo_data.get('seo_rankings', [])[:12] %}
+        <tr><td>{{k.keyword}}</td><td><span class="pill info">{{k.language}}</span></td>
+        <td><span class="pill {{'on' if k.position<=10 else 'off'}}">#{{k.position}}</span></td>
+        <td class=faint style="font-size:.78rem">{{k.url}}</td></tr>
+      {% endfor %}</table>
+    </div>
+
+    <p class=faint style="font-size:.8rem">Fuente: <code>docs/data/*.json</code>. La analítica SEO reemplaza al dashboard estático de GitHub Pages — ahora vive aquí, con login real y junto al resto.</p>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+    (function(){
+      var lang = {{ (seo_data.get('traffic_by_language', {}))|tojson }};
+      var country = {{ (seo_data.get('traffic_by_country', {}))|tojson }};
+      var palette = ['#6d5efc','#38bdf8','#25c281','#f5a524','#f4436c','#8b7bff','#5b6178'];
+      var txt = '#8a90a6';
+      if (window.Chart){
+        new Chart(document.getElementById('chLang'), {type:'doughnut',
+          data:{labels:Object.keys(lang), datasets:[{data:Object.values(lang), backgroundColor:palette, borderColor:'#161a24', borderWidth:2}]},
+          options:{plugins:{legend:{labels:{color:txt}}}, cutout:'62%'}});
+        new Chart(document.getElementById('chCountry'), {type:'bar',
+          data:{labels:Object.keys(country), datasets:[{data:Object.values(country), backgroundColor:'#6d5efc', borderRadius:6}]},
+          options:{plugins:{legend:{display:false}}, scales:{x:{ticks:{color:txt},grid:{display:false}}, y:{ticks:{color:txt},grid:{color:'#252b3b'}}}}});
+      }
+    })();
+    </script>
+    <style>@media(max-width:760px){.cols{grid-template-columns:1fr!important}}</style>
+    """
+    return render(body, nav='seo', title='Analítica / SEO',
+                  report=report, run_rows=run_rows, seo_data=seo_data,
+                  content=content, health=health)
 
 
 # ─────────────────────────── estado del sistema ───────────────────────────

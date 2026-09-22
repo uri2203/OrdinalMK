@@ -4,16 +4,19 @@ services:
   - type: web
     name: ordinalmk-panel
     runtime: python
-    plan: starter
+    plan: free
     buildCommand: pip install -r requirements.txt anthropic google-api-python-client google-auth
     startCommand: gunicorn panel:app --bind 0.0.0.0:$PORT
     healthCheckPath: /login
-    # Disco persistente: sin esto, los prospectos/held/reportes se pierden al
-    # reiniciar (el filesystem de Render es efímero). Con disco, se conservan.
-    disk:
-      name: ordinalmk-data
-      mountPath: /opt/render/project/src/reports
-      sizeGB: 1
+    # NOTA (plan free): sin disco persistente el filesystem es EFÍMERO — los
+    # prospectos/held/reportes se pierden en cada reinicio, y el servicio se
+    # duerme tras ~15 min de inactividad (primera carga lenta al despertar).
+    # Para conservar datos 24/7, sube a plan `starter` y reactiva el bloque
+    # `disk:` de abajo (mountPath en reports/).
+    # disk:
+    #   name: ordinalmk-data
+    #   mountPath: /opt/render/project/src/reports
+    #   sizeGB: 1
     envVars:
       - key: SECRET_KEY
         generateValue: true

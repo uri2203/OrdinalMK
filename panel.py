@@ -42,6 +42,9 @@ from engine.measurement.conversions import summary as conv_summary
 from engine.intelligence import keywords as kw
 from engine.intelligence import recommendations as recs_mod
 from engine.ops import config_editor
+from engine.authority import backlinks as bl_mod
+from engine.seo import indexing as idx_mod
+from engine.ops import alerts as alerts_mod
 from engine.publishers.content_publisher import CONTENT_ROOT
 
 app = Flask(__name__)
@@ -497,6 +500,22 @@ def project(pid):
         ([{'k': k, **v} for k, v in conv['by_content'].items()]),
         key=lambda x: x['revenue'], reverse=True)[:5]
 
+    # SEO técnico avanzado (Hulk): páginas programáticas, backlinks, indexación, alertas
+    prog_pages = sum(len(list((PUBLISHED_DIR / pid / l / 'lp').glob('*.html')))
+                     for l in s['languages'] if (PUBLISHED_DIR / pid / l / 'lp').exists())
+    try:
+        bl = bl_mod.summary(pid)
+    except Exception:
+        bl = {'total': 0, 'counts': {}, 'live_backlinks': 0, 'avg_domain_authority': 0}
+    try:
+        idx_pending = idx_mod.pending(pid)
+    except Exception:
+        idx_pending = 0
+    try:
+        alerts_recent = alerts_mod.recent(pid, n=5)
+    except Exception:
+        alerts_recent = []
+
     body = """
     <a class=back href="{{url_for('home')}}">← Centro de control</a>
     <div class=top>
@@ -596,6 +615,25 @@ def project(pid):
     </div>
 
     <div class=card>
+      <h2>🦾 SEO técnico avanzado (Hulk)</h2>
+      <div class=stat-row>
+        <div class=s><div class=n>{{prog_pages}}</div><div class=l>páginas programáticas</div></div>
+        <div class=s><div class=n>{{bl.total}}</div><div class=l>targets backlinks</div></div>
+        <div class=s><div class=n>{{bl.live_backlinks}}</div><div class=l>enlaces vivos</div></div>
+        <div class=s><div class=n>{{idx_pending}}</div><div class=l>en cola de indexación</div></div>
+      </div>
+      {% if alerts_recent %}
+      <div style="margin-top:.6rem">
+        <div class=faint style="font-size:.78rem;margin-bottom:.3rem">Alertas recientes</div>
+        {% for a in alerts_recent %}
+        <div class=rec style="border-left-color:{{'var(--danger)' if a.severity=='alta' else 'var(--warn)'}}">
+          <div class=t>{{a.kind}} · {{a.severity}}</div>{{a.title}}</div>
+        {% endfor %}
+      </div>
+      {% else %}<p class=muted style="font-size:.83rem;margin-top:.4rem">Sin alertas. El motor las genera en cada corrida (caídas de ranking, revisión, respuestas).</p>{% endif %}
+    </div>
+
+    <div class=card>
       <h2>⚙ Ajustes (editar en vivo)</h2>
       <form method=post action="{{url_for('project_config', pid=s.id)}}"
         style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
@@ -627,6 +665,8 @@ def project(pid):
     return render(body, nav='project', current_pid=pid, title=s['name'],
                   s=s, icp=icp, gaps=gaps, recs=recs, by_content=by_content,
                   brand_voice=governance.brand_voice(cfg),
+                  prog_pages=prog_pages, bl=bl, idx_pending=idx_pending,
+                  alerts_recent=alerts_recent,
                   funnel=FUNNEL, funnel_label=FUNNEL_LABEL)
 
 

@@ -161,11 +161,78 @@ class MultiProjectOrchestrator:
         except Exception as e:
             print(f"    [reporte omitido] {e}")
 
+        # SEO técnico avanzado ("Hulk"): programático, indexación, SERP,
+        # refresco, backlinks, local y alertas. Todo con fallback; nunca rompe.
+        print(f"    SEO avanzado (programático, indexación, SERP, backlinks, local)...")
+        result['tasks']['advanced'] = self._advanced_seo(project_id, config, languages)
+
         result['completed_at'] = datetime.now().isoformat()
         result['status'] = 'completed'
-        
+
         return result
-    
+
+    def _advanced_seo(self, project_id: str, config: dict, languages: list) -> dict:
+        """Cablea los módulos SEO avanzados. Cada bloque es tolerante a fallos."""
+        out = {}
+        prog_urls = []
+        # 1) SEO programático (páginas a escala)
+        try:
+            from engine.seo.programmatic import generate as prog_gen
+            r = prog_gen(project_id, config, langs=languages,
+                         max_pages=(config.get('programmatic', {}) or {}).get('max_pages'))
+            out['programmatic'] = {'generated': r.get('generated', 0)}
+            prog_urls = [p['url'] for p in r.get('pages', [])]
+        except Exception as e:
+            out['programmatic'] = {'error': str(e)}
+        # 2) Indexación (empuja las URLs nuevas)
+        try:
+            from engine.seo.indexing import submit as idx_submit
+            r = idx_submit(project_id, prog_urls, config)
+            out['indexing'] = {'urls': r.get('urls', 0)}
+        except Exception as e:
+            out['indexing'] = {'error': str(e)}
+        # 3) SERP tracking + movers
+        try:
+            from engine.measurement.serp_tracker import track, movers
+            track(project_id, config)
+            out['serp'] = movers(project_id)
+        except Exception as e:
+            out['serp'] = {'error': str(e)}
+        # 4) Refresco de contenido (ejecuta reescritura solo si hay IA)
+        try:
+            from engine.authority.refresh import run as refresh_run
+            dropped = [d['keyword'] for d in ((out.get('serp') or {}).get('down') or [])]
+            r = refresh_run(project_id, config, dropped_keywords=dropped,
+                            execute=bool(os.environ.get('ANTHROPIC_API_KEY')
+                                         or os.environ.get('ANTHROPIC_AUTH_TOKEN')))
+            out['refresh'] = {'stale': r.get('stale', 0), 'refreshed': len(r.get('refreshed', []))}
+        except Exception as e:
+            out['refresh'] = {'error': str(e)}
+        # 5) Backlinks: siembra targets por nicho
+        try:
+            from engine.authority.backlinks import suggest_targets, add_targets, summary as bl_sum
+            add_targets(project_id, [{'name': t['query'], 'kind': t['kind']}
+                                     for t in suggest_targets(config)])
+            out['backlinks'] = bl_sum(project_id)['counts']
+        except Exception as e:
+            out['backlinks'] = {'error': str(e)}
+        # 6) SEO local: encola directorios + post GBP
+        try:
+            from engine.seo.local import submit as local_submit
+            r = local_submit(project_id, config)
+            out['local'] = {'directories': r.get('directories', 0)}
+        except Exception as e:
+            out['local'] = {'error': str(e)}
+        # 7) Alertas: caídas de ranking + contenido en revisión
+        try:
+            from engine.ops.alerts import run as alerts_run
+            from engine.review.queue import list_held
+            alerts_run(project_id, config, movers=out.get('serp'),
+                       held=len(list_held(project_id)))
+        except Exception as e:
+            out['alerts'] = {'error': str(e)}
+        return out
+
     def _generate_content(self, project_id: str, config: dict) -> dict:
         """Generate content for a project."""
         try:
